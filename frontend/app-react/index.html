@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Ionicons CDN -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="./src/css/dark_mode.css">
+  <script>
+    (function () {
+      const dark = localStorage.getItem("darkMode") === "true";
+      if (dark) {
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-main: #ffffff;
+      --text-main: #000000;
+      --card-bg: #f5f5f5;
+      --border-color: #ddd;
+
+      --color-chart-1: #3b82f6;
+      --color-chart-2: #22c55e;
+      --color-border-3: #e5e7eb;
+      --color-text-3: #6b7280;
+      --color-surface-base: #ffffff;
+      --color-surface-raised: #ffffff;
+    }
+
+
+    /*font-size adaptativo*/
+    * {
+      font-size: calc(12px + 0.1vw);
+      padding: 0;
+      margin: 0;
+    }
+
+
+
+    .contenedor {
+      width: 100%;
+      height: auto;
+      padding: 10px 10px 0px 10px;
+      flex: 1;
+
+
+    }
+
+    .modal-top {
+      margin-top: 20px !important;
+    }
+
+    #root {
+      background-color: #fff;
+      color: black;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    button {
+      background-color: #4a82fcff;
+      color: white;
+      border: 1px solid #e3e3e3;
+    }
+
+    .accordion-button:not(.collapsed) {
+      background-color: #4a82fcff;
+      color: white;
+    }
+
+    .accordion-button:not(.collapsed):hover {
+      background-color: #4a82fcff;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #4a82fcff;
+      color: white;
+    }
+
+    .header {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+
+
+
+
+
+    /* En pantallas grandes, empujar el content */
+    @media (min-width: 992px) {
+      #content {
+        margin-left: 200px !important;
+        /* Ancho del sidebar */
+      }
+    }
+
+    /* En pantallas pequeñas, content a 100% */
+    @media (max-width: 991px) {
+      #content {
+        margin-left: 0 !important;
+        width: 100%;
+      }
+    }
+  </style>
+
+  <title>Vite + React</title>
+</head>
+
+<body>
+  <div id="root"></div>
+
+
+  <script type="module" src="/src/main.jsx"></script>
+
+
+</body>
+
+</html>

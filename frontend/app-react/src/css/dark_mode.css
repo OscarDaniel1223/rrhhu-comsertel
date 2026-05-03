@@ -1,0 +1,208 @@
+ body.dark {
+     --bg-main: #1f2d40;
+     --text-main: #ffffff;
+     --card-bg: #1f2d40;
+     --border-color: #e3e3e3;
+ }
+
+ body.dark .select__control {
+     background-color: #1f2d40 !important;
+     border-color: #e3e3e3 !important;
+ }
+
+ body.dark .select__single-value {
+     color: white !important;
+ }
+
+ body.dark .select__menu {
+     background-color: #1f2d40 !important;
+ }
+
+ body.dark .select__control--is-focused {
+     border-color: #8d8d8d !important;
+     background-color: #1f2d40 !important;
+     box-shadow: none !important;
+ }
+
+ body.dark .select__control {
+     background-color: #1f2d40 !important;
+     border-color: #8d8d8d !important;
+ }
+
+ body.dark .select__menu {
+     background-color: #1f2d40 !important;
+ }
+
+ body.dark .select__option--is-focused {
+     background-color: #2c3e50 !important;
+     color: #fff !important;
+ }
+
+ body.dark .select__option--is-selected {
+     background-color: #34495e !important;
+     color: #fff !important;
+ }
+
+ body.dark footer {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark #root {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark #root {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark .header {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark .contenedor {
+     background-color: #1f2d40;
+     color: white;
+
+ }
+
+ body.dark .card {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark .shadow-sm {
+     background-color: #1f2d40;
+     color: white;
+ }
+
+ body.dark .accordion-button:not(.collapsed),
+ body.dark .accordion-button:not(.collapsed):hover,
+ body.dark .accordion-button:not(.collapsed):focus {
+     background-color: #1f2d40;
+     color: white;
+     border: none;
+     box-shadow: none;
+ }
+
+ body.dark .accordion-button:focus {
+     box-shadow: none;
+ }
+
+ body.dark .accordion-button::after {
+     filter: invert(1);
+ }
+
+
+ .accordion-button {
+     transition: none !important;
+ }
+
+ body.dark #footer {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark .list-group-item:hover {
+     background-color: #2a3a4f;
+     border-color: #e3e3e3;
+     color: white;
+ }
+
+ body.dark .list-group-item.active {
+     background-color: #2a3a4f;
+     border-color: #e3e3e3;
+     color: white;
+ }
+
+ body.dark i {
+     color: white;
+ }
+
+ body.dark .table {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark .offcanvas-body {
+     background-color: #1f2d40;
+     color: white;
+     border-right: 1px solid #e3e3e3;
+     height: 100vh;
+ }
+
+ body.dark .offcanvas-header {
+     background-color: #1f2d40;
+     color: white;
+     /*Solo borde derecho */
+     border-right: 1px solid #e3e3e3;
+ }
+
+ body.dark button {
+     background-color: #1f2d40;
+     color: white;
+     border: 1px solid #e3e3e3;
+ }
+
+ body.dark .btn-outline-primary:hover {
+     background-color: #161d27;
+     color: white;
+     border-color: #161d27;
+ }
+
+ body.dark .container {
+     background-color: #e4e4e4;
+     color: black;
+     border-color: #e3e3e3;
+ }
+
+
+ body.dark .nav_container {
+     background-color: #1f2d40;
+     color: white;
+     /*Solo borde derecho */
+     border-right: 1px solid #e3e3e3;
+ }
+
+ body.dark {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e3;
+ }
+
+ body.dark .modal-content {
+     background-color: #1f2d40;
+     color: white;
+ }
+
+ body.dark .custom_input {
+     background-color: #1f2d40;
+     color: white;
+     border-color: #e3e3e385;
+ }
+
+ /*Despues de autocompletar el input*/
+ body.dark .custom_input:-webkit-autofill,
+ body.dark .custom_input:-webkit-autofill:hover,
+ body.dark .custom_input:-webkit-autofill:focus,
+ body.dark .custom_input:-webkit-autofill,
+ body.dark .custom_input:-webkit-autofill {
+     -webkit-box-shadow: 0 0 0px 1000px #1f2d40 inset !important;
+     -webkit-text-fill-color: white !important;
+     border-color: #e3e3e3 !important;
+     transition: background-color 9999s ease-in-out 0s;
+ }
+
+ body.dark .custom_input::placeholder {
+     color: rgba(255, 255, 255, 0.349);
+ }
