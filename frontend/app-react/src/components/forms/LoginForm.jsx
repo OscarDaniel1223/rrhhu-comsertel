@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import '../../css/LoginForm.css';
-import logo from '../../assets/logotipo.jpeg';
-import { showError, showSuccess } from '../../utils/Alerts';
+import logo from '../../assets/comsertel-banner.png';
+import { showError, showSuccess } from '../../utils/alerts';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../services/auth/authService';
 import { useAuth } from "../../providers/AuthContext";
@@ -86,7 +86,7 @@ export default function LoginForm() {
                             <div className='row'>
 
                                 <div className='col-md-12'>
-                                    <h2>COMSER TEL S.A de C.V</h2>
+                                    <h2>COMSERTEL S.A de C.V</h2>
                                 </div>
 
                             </div>
@@ -100,7 +100,7 @@ export default function LoginForm() {
                                     id="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="mechanichal.workshop@gmail.com"
+                                    placeholder="usuario@gmail.com"
                                     required
                                 />
                             </div>

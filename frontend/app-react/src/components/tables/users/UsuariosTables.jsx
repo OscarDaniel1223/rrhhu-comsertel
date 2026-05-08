@@ -3,7 +3,7 @@ import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import DataTable, { createTheme } from "react-data-table-component";
 import { ThemeContext } from "../../../providers/ThemeContext";
-import { showError, showSuccess, showQuestion, showLoading } from '../../../utils/Alerts';
+import { showError, showSuccess, showQuestion, showLoading } from '../../../utils/alerts';
 import Modal_edit from "../../modal/users/Modal_edit";
 import { deleteUser } from "../../../services/users/deleteUserServices";
 import { activarUserServices } from "../../../services/users/activarUserServices";

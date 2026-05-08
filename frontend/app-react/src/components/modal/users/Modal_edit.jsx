@@ -4,7 +4,7 @@ import useRoles from "../../../hooks/users/useRoles";
 import { getRoles } from "../../../services/users/rolesServices";
 import Roles_select from "../../selects/Roles_select";
 import { updateUserServices } from "../../../services/users/updateUserServices";
-import { showError, showSuccess, showLoading, showQuestion } from '../../../utils/Alerts';
+import { showError, showSuccess, showLoading, showQuestion } from '../../../utils/alerts';
 
 export default function Modal_edit({ show, onHide, title, data, refreshUsers }) {
 

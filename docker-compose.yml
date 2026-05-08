@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------
+  # 1. SERVICIO DE BASE DE DATOS (MySQL)
+  # ----------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: comsertel_proyec
+    restart: always
+    environment:
+      # Configuraciones de seguridad leídas del archivo .env
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      # Mapea el puerto para conectar herramientas externas (como DBeaver o tu código del backend)
+      - "3306:3306"
+    volumes:
+      # ¡IMPORTANTE! Esto guarda los datos para que no se borren si apagas Docker
+      - db_data:/var/lib/mysql
+
+  # ----------------------------------------------------
+  # 2. SERVICIO DE INTERFAZ WEB (phpMyAdmin)
+  # ----------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: mi_proyecto_pma
+    restart: always
+    environment:
+      # Le decimos a phpMyAdmin dónde está la base de datos
+      PMA_HOST: db 
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} # Misma variable que arriba
+    ports:
+      # El puerto izquierdo (8080) es el que usarás en tu navegador
+      - "8080:80"
+    depends_on:
+      # Le decimos a Docker que encienda primero MySQL y luego phpMyAdmin
+      - db
+
+# ----------------------------------------------------
+# DEFINICIÓN DE VOLÚMENES PERSISTENTES
+# ----------------------------------------------------
+volumes:
+  db_data:

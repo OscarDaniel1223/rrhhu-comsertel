@@ -5,7 +5,7 @@ import user_icon from "../assets/usuario.png";
 import { useAuth } from "../providers/AuthContext";
 import { menuItems } from "../services/menuConfig";
 
-import img_logo from "../assets/logotipo.jpeg";
+import img_logo from "../assets/comsertel-banner.png";
 
 import { ThemeContext } from "../providers/ThemeContext";
 

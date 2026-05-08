@@ -6,7 +6,7 @@ import { getRoles } from "../../services/users/rolesServices";
 import UsersCard from "../cards/usuarios/UsersCard";
 import Roles_select from "../selects/Roles_select";
 import Modal_default from '../modal/Modal_default';
-import { showError, showSuccess } from '../../utils/Alerts';
+import { showError, showSuccess } from '../../utils/alerts';
 import useNewUser from '../../hooks/users/useNewUser';
 import { newUserServices } from '../../services/users/newUserServices';
 export default function Users() {
