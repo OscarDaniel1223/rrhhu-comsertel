@@ -7,15 +7,15 @@ El proyecto actual tiene una "mezcla crítica" de Bootstrap, CSS puro y Tailwind
 
 - **Nuevos Componentes (v2_):** 100% Tailwind CSS. **Prohibido** usar clases de Bootstrap (`row`, `col`, `card`) o crear nuevos archivos `.css`.
 - **Componentes Antiguos:** Se mantendrán con su CSS/Bootstrap hasta que se rediseñen. Una vez rediseñados, se **eliminará** su archivo `.css` correspondiente de la carpeta `src/css/`.
-- **Meta Final:** Eliminar la importación de Bootstrap en `main.jsx` al finalizar la migración.
+- **Meta Final:** La meta es integrar el nuevo codigo con el viejo proyecto siguiendo las buenas practicas.
 
 ## 2. Estructura de Carpetas (Mantener Estructura Plana)
 Para evitar niveles innecesarios de carpetas que compliquen el acceso, **no crearemos subcarpetas /v2**. En su lugar, usaremos el prefijo en el nombre del archivo dentro de las carpetas actuales:
 
-1.  **`src/components/`**: Los nuevos componentes irán aquí con el nombre `v2_Nombre.jsx`.
-2.  **`src/hooks/`**: Nuevos hooks como `v2_useEmpleados.js`.
-3.  **`src/services/`**: Nuevos servicios como `v2_empleadoService.js`.
-4.  **`src/pages/`**: Nuevas vistas como `v2_Dashboard.jsx`.
+1.  **`src/components/`**: Solo crea un nuevo componente si no existe uno que cumpla lo necesario, siguiendo la nueva nomenclatura (ej. `v2_Nombre.jsx`).
+2.  **`src/hooks/`**: Solo crea un nuevo hook si no existe uno que cumpla lo necesario, siguiendo la nueva nomenclatura (ej. `v2_useEmpleados.js`).
+3.  **`src/services/`**: Solo crea un nuevo servicio si no existe uno que cumpla lo necesario, siguiendo la nueva nomenclatura (ej. `v2_empleadoService.js`).
+4.  **`src/pages/`**: Las UI se estaran cargando en el viejo dashboard (`frontend/app-react/src/pages/dashboard.jsx`).
 
 Esto permite que todos los archivos estén a la vista y se identifiquen rápidamente por su nombre sin tener que navegar por múltiples niveles de directorios.
 

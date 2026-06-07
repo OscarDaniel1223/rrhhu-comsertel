@@ -8,6 +8,8 @@ const reviewsRoutes = require('./routes/reviews');
 const statsRoutes = require('./routes/stats');
 const empresaRoutes = require('./routes/empresa');
 const usuariosRoutes = require('./routes/usuarios');
+const v2_departamentosRoutes = require('./routes/v2_departamentos');
+const v2_cargosRoutes = require('./routes/v2_cargos');
 const app = express();
 
 const PORT = process.env.PORT || 3001;
@@ -20,6 +22,8 @@ app.use('/api', reviewsRoutes);
 app.use('/api', statsRoutes);
 app.use('/api', empresaRoutes);
 app.use('/api', usuariosRoutes);
+app.use('/api', v2_departamentosRoutes);
+app.use('/api', v2_cargosRoutes);
 
 
 

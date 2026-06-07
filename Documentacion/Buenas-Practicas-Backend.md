@@ -25,11 +25,7 @@ Para evitar confusiones entre el código del sistema anterior (`workshop`) y el 
 ## 3. Seguridad y CORS
 El middleware `cors()` en `server.js` es fundamental. Su función es permitir que el Frontend (puerto 5173) pueda hacer peticiones al Backend (puerto 3001). Sin esto, el navegador bloquearía las peticiones por seguridad.
 
-## 4. Limpieza de Controladores (Validaciones)
-Los controladores actuales tienen mucha lógica de validación (ej. `if (!email) ...`). 
-- **Mejora Sugerida:** Mover las validaciones pesadas a la carpeta `middlewares/`. El controlador solo debe recibir datos ya validados y ejecutar la consulta a la BD.
-
-## 5. Estándar de Respuesta API
+## 4. Estándar de Respuesta API
 ...
 
 Todas las respuestas deben ser JSON y seguir esta estructura:
@@ -52,7 +48,7 @@ Todas las respuestas deben ser JSON y seguir esta estructura:
 }
 ```
 
-## 4. Principios de Desarrollo
+## 5. Principios de Desarrollo
 - **Async/Await:** Evitar el uso de callbacks. Siempre usar `try/catch` para manejar errores asíncronos.
 - **Validación:** Validar los datos de entrada (`req.body`, `req.params`) antes de procesarlos.
 - **Seguridad:**
@@ -63,7 +59,7 @@ Todas las respuestas deben ser JSON y seguir esta estructura:
     - Usar consultas preparadas (placeholders `?`) para evitar inyección SQL.
     - Mantener la conexión mediante un Pool de conexiones.
 
-## 5. Ejemplo de Controlador Estándar
+## 6. Ejemplo de Controlador Estándar
 ```javascript
 const getEmpleadoById = async (req, res) => {
     try {
