@@ -56,9 +56,11 @@ typings/
 Thumbs.db
 
 # Database backup / base info
+base antigua comsertel_rh.sql
 comsertel.sql
 Nueva-base.txt
 Contexto.txt
+datos_prueba.sql
 
 # IDE files
 .vscode/

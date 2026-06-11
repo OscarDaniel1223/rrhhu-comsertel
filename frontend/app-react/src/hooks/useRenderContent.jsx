@@ -1,7 +1,7 @@
 import Home from "../components/contents/Home";
 import Products from "../components/contents/Products";
 import Users from "../components/contents/Users";
-import Employees from "../components/contents/employees/Employees";
+import V2_ContenedorEmpleado from "../components/V2_ContenedorEmpleado";
 import { menuItems } from "../services/menuConfig";
 import { useAuth } from "../providers/AuthContext";
 
@@ -38,7 +38,7 @@ export default function useRenderContent(activeItem) {
       content = <Users />;
       break;
     case "employees":
-      content = <Employees />;
+      content = <V2_ContenedorEmpleado />;
       break;
 
     default:

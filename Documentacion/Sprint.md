@@ -18,7 +18,8 @@ Este documento organiza el trabajo para el grupo de 5 estudiantes.
 - **Tarea 1 (Backend):** CRUD de Empleados con `JOINs` para traer cargo y departamento en una sola consulta. (Dev 1)
 - **Tarea 2 (Frontend):** Formulario dinámico de Registro de Empleados (Selects cargados desde la API). (Dev 2)
 - **Tarea 3 (Frontend):** Tabla de empleados usando únicamente Tailwind CSS (Eliminar Bootstrap aquí). (Dev 3)
-- **Tarea 4 (QA):** Validar que los DUI y NIT cumplan con el formato salvadoreño. (Apoyo 1 y 2)
+- **Tarea 4 (Frontend):** Crear componente `V2_ContenedorEmpleado` con pestañas para alternar entre el formulario y la tabla de empleados. Integrarlo en `Navbar.jsx` para que se despliegue en `dashboard.jsx`. (Dev 3)
+- **Tarea 5 (QA):** Validar que los DUI y NIT cumplan con el formato salvadoreño. (Apoyo 1 y 2)
 
 ## Sprint 3: Control de Tiempo y Ausencias (1 Semana)
 **Objetivo:** Registrar incidencias que afectarán el pago.

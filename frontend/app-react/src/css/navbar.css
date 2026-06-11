@@ -40,3 +40,10 @@
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
   }
 }
+
+/* Compensación de espacio para el contenido principal en pantallas grandes */
+@media (min-width: 992px) {
+  #content {
+    margin-left: 200px !important;
+  }
+}
