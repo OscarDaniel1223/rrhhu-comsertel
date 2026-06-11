@@ -6,11 +6,11 @@ const V2_ContenedorEmpleado = () => {
   const [activeTab, setActiveTab] = useState('tabla');
 
   return (
-    <div className="py-6 px-4 md:px-6 lg:px-8">
-      <div className="mb-8 flex flex-col items-center justify-center gap-4 text-center">
+    <div className="m-4 md:m-6 py-4 space-y-6">
+      <div className="flex flex-col items-center justify-center text-center">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Gestión de Empleados</h1>
-          <p className="text-slate-500 text-base mt-2">Administra la información del personal de la empresa de forma centralizada.</p>
+          <h1 className="text-3xl font-bold text-black tracking-tight">Gestión de Empleados</h1>
+          <p className="text-slate-500 text-sm mt-2">Administra la información del personal de la empresa de forma centralizada.</p>
         </div>
       </div>
 

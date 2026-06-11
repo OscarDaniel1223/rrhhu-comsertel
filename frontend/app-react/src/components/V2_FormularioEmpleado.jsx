@@ -92,118 +92,128 @@ const V2_FormularioEmpleado = () => {
   };
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-xl shadow-md border border-slate-100">
-      <h2 className="text-xl font-bold text-slate-800 mb-8 pb-3 border-b border-slate-100">Registro de Nuevo Empleado</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white p-6 md:p-8 rounded-[15px] shadow-sm border border-slate-200 max-w-2xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-lg font-bold text-black">Registro de Nuevo Empleado</h2>
+        <p className="text-slate-500 text-xs mt-1">Completa los campos para dar de alta un nuevo colaborador en la base de datos.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">Nombres</label>
-            <input 
-              type="text" 
-              name="nombres" 
-              value={formData.nombres} 
-              onChange={handleChange} 
-              required 
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="Ej. Juan Carlos"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">Apellidos</label>
-            <input 
-              type="text" 
-              name="apellidos" 
-              value={formData.apellidos} 
-              onChange={handleChange} 
-              required 
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="Ej. Pérez García"
-            />
-          </div>
+        {/* Campo: Nombres */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">Nombres</label>
+          <input 
+            type="text" 
+            name="nombres" 
+            value={formData.nombres} 
+            onChange={handleChange} 
+            required 
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-slate-50/50 focus:bg-white"
+            placeholder="Ej. Juan Carlos"
+          />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">DUI</label>
-            <input 
-              type="text" 
-              name="dui" 
-              value={formData.dui} 
-              onChange={handleChange} 
-              required 
-              pattern="\d{8}-\d{1}"
-              title="Debe contener 8 dígitos, un guion y 1 dígito (Ej: 12345678-9)"
-              maxLength="10"
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="00000000-0"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">NIT</label>
-            <input 
-              type="text" 
-              name="nit" 
-              value={formData.nit} 
-              onChange={handleChange} 
-              required 
-              pattern="\d{4}-\d{6}-\d{3}-\d{1}"
-              title="Formato: 0000-000000-000-0"
-              maxLength="17"
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              placeholder="0000-000000-000-0"
-            />
-          </div>
+        {/* Campo: Apellidos */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">Apellidos</label>
+          <input 
+            type="text" 
+            name="apellidos" 
+            value={formData.apellidos} 
+            onChange={handleChange} 
+            required 
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-slate-50/50 focus:bg-white"
+            placeholder="Ej. Pérez García"
+          />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">Fecha de Ingreso</label>
-            <input 
-              type="date" 
-              name="fecha_ingreso" 
-              value={formData.fecha_ingreso} 
-              onChange={handleChange} 
-              required 
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">Cargo</label>
-            <select 
-              name="id_cargo" 
-              value={formData.id_cargo} 
-              onChange={handleChange} 
-              required
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all"
-            >
-              <option value="" disabled>Seleccione un cargo</option>
-              {cargos.map((cargo) => (
-                <option key={cargo.id} value={cargo.id}>
-                  {cargo.titulo} ({cargo.departamento})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">Estado</label>
-            <select 
-              name="estado" 
-              value={formData.estado} 
-              onChange={handleChange} 
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all"
-            >
-              <option value="ACTIVO">ACTIVO</option>
-              <option value="INACTIVO">INACTIVO</option>
-            </select>
-          </div>
+        {/* Campo: DUI */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">DUI</label>
+          <input 
+            type="text" 
+            name="dui" 
+            value={formData.dui} 
+            onChange={handleChange} 
+            required 
+            pattern="\d{8}-\d{1}"
+            title="Debe contener 8 dígitos, un guion y 1 dígito (Ej: 12345678-9)"
+            maxLength="10"
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-slate-50/50 focus:bg-white"
+            placeholder="00000000-0"
+          />
         </div>
 
-        <div className="flex justify-end pt-6 border-t border-slate-100 mt-8">
+        {/* Campo: NIT */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">NIT</label>
+          <input 
+            type="text" 
+            name="nit" 
+            value={formData.nit} 
+            onChange={handleChange} 
+            required 
+            pattern="\d{4}-\d{6}-\d{3}-\d{1}"
+            title="Formato: 0000-000000-000-0"
+            maxLength="17"
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-slate-50/50 focus:bg-white"
+            placeholder="0000-000000-000-0"
+          />
+        </div>
+
+        {/* Campo: Fecha de Ingreso */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">Fecha de Ingreso</label>
+          <input 
+            type="date" 
+            name="fecha_ingreso" 
+            value={formData.fecha_ingreso} 
+            onChange={handleChange} 
+            required 
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-slate-50/50 focus:bg-white"
+          />
+        </div>
+
+        {/* Campo: Cargo */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">Cargo</label>
+          <select 
+            name="id_cargo" 
+            value={formData.id_cargo} 
+            onChange={handleChange} 
+            required
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-white"
+          >
+            <option value="" disabled>Seleccione un cargo</option>
+            {cargos.map((cargo) => (
+              <option key={cargo.id} value={cargo.id}>
+                {cargo.titulo} ({cargo.departamento})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Campo: Estado */}
+        <div className="flex flex-col gap-1.5">
+          <label className="block text-sm font-semibold text-slate-700">Estado</label>
+          <select 
+            name="estado" 
+            value={formData.estado} 
+            onChange={handleChange} 
+            className="w-full px-4 py-2 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-white"
+          >
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+          </select>
+        </div>
+
+        {/* Botón de Guardado */}
+        <div className="flex justify-end pt-4 border-t border-slate-100 mt-4">
           <button 
             type="submit" 
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-[10px] transition-all duration-300 shadow-sm hover:shadow-md disabled:opacity-50 text-sm cursor-pointer"
           >
             {loading ? 'Guardando...' : 'Guardar Empleado'}
           </button>

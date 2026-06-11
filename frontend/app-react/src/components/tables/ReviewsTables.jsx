@@ -1,29 +1,28 @@
 import React, { useState, useMemo, useContext } from "react";
-import Badge from "react-bootstrap/Badge";
 import DataTable, { createTheme } from "react-data-table-component";
 import { ThemeContext } from "../../providers/ThemeContext";
 
 
 createTheme('customDark', {
     text: {
-        primary: '#FFFFFF',
-        secondary: '#CCCCCC',
+        primary: '#f8fafc',
+        secondary: '#94a3b8',
     },
     background: {
-        default: '#1f2d40',
-        text: '#fff',
+        default: '#0f172a',
+        text: '#f8fafc',
     },
     context: {
-        background: '#1f2d40',
-        text: '#FFFFFF',
+        background: '#0f172a',
+        text: '#f8fafc',
     },
     divider: {
-        default: '#1f2d40',
+        default: '#334155',
     },
     rows: {
         highlightOnHoverStyle: {
-            backgroundColor: '#1f2d4055', // color hover
-            color: '#FFFFFF',
+            backgroundColor: '#1e293b', // color hover
+            color: '#f8fafc',
             transition: '0.2s ease-in-out',
             cursor: 'pointer',
         },
@@ -89,12 +88,7 @@ export default function ReviewsTables({ data }) {
             placeholder="Buscar..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            style={{
-                padding: "6px 12px",
-                borderRadius: 4,
-                border: "1px solid #ccc",
-                width: "250px",
-            }}
+            className="px-3 py-1.5 w-[250px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-md placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors"
         />
     );
     const { darkMode } = useContext(ThemeContext);

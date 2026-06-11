@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const useRenderGraphic = (dataService) => {
-    const [data, setData] = useState([]);
+    const [data, setData] = useState({ data: [] });
 
     useEffect(() => {
         const fetchData = async () => {

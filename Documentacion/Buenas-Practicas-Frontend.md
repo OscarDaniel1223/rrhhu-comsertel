@@ -81,7 +81,6 @@ export default CardEmpleado;
 4. [ ] ¿Se manejan estados de error y carga?
 
 ## 7. Prácticas de Diseño y UX (Diseño Moderno)
-- **Márgenes y Contenedores:** Los componentes principales, como tablas y formularios, deben tener un margen de separación del contenedor central (por ejemplo, `m-[15px]` o `m-4`) para que no se sientan pegados o mezclados con el menú lateral/superior.
-- **Navegación tipo "Tabs":** En lugar de pestañas clásicas, se prefiere un diseño moderno y centrado (estilo Segmented Control). Usar bordes muy redondeados (`rounded-[15px]`), fondos grises claros (`bg-slate-100`) para el contenedor, y contrastar la pestaña activa con un fondo blanco, sombra (`shadow-sm`) y texto negro (`text-black`).
+
 - **Organización de Formularios:** Los inputs y outputs deben fluir secuencialmente hacia abajo (en una columna) para facilitar la lectura. Es preferible agruparlos usando `flex flex-col gap-4` en lugar de usar `grid` con varias columnas que puedan desordenar visualmente el espacio cuando se ajustan automáticamente.
 - **Textos y Sombras:** Usar siempre sombras suaves (`shadow-sm`), bordes sutiles (`border-slate-200`) y colores limpios para el texto (`text-black` para énfasis, `text-slate-500` para descripciones).

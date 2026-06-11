@@ -1,0 +1,234 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: employees.spec.js >> Pruebas de Empleados F3 >> Caso 3: Registro exitoso de colaborador
+- Location: frontend/app-react/tests/e2e/employees.spec.js:128:3
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: page.click: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for locator('button:has-text("Empleados")')
+    - locator resolved to <button class="flex items-center w-full px-5 py-2.5 text-sm font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900">…</button>
+  - attempting click action
+    - waiting for element to be visible, enabled and stable
+  - element was detached from the DOM, retrying
+
+```
+
+# Test source
+
+```ts
+  11  |           token: 'token-fake-admin',
+  12  |           rol: 1,
+  13  |           id: 1,
+  14  |           name: 'Admin User',
+  15  |           cambio_pass: 1,
+  16  |           message: 'Bienvenido.'
+  17  |         })
+  18  |       });
+  19  |     });
+  20  | 
+  21  |     await page.goto('/');
+  22  |     await page.fill('input#email', 'admin@comsertel.com');
+  23  |     await page.fill('input#password', 'password123');
+  24  |     await page.click('button[type="submit"]');
+  25  | 
+  26  |     const confirmBtn = page.locator('.swal2-confirm');
+  27  |     await expect(confirmBtn).toBeVisible();
+  28  |     await confirmBtn.click();
+  29  | 
+  30  |     await expect(page).toHaveURL(/\/dashboard/);
+  31  |   };
+  32  | 
+  33  |   test.beforeEach(async ({ page }) => {
+  34  |     // Mockear endpoints comunes del dashboard con datos para evitar crash
+  35  |     await page.route('**/api/getRegisterUsers', async route => {
+  36  |       await route.fulfill({
+  37  |         status: 200,
+  38  |         contentType: 'application/json',
+  39  |         body: JSON.stringify({ data: [{ title: 'Usuarios', icon: 'bi-people', count: 0, color: 'blue' }] })
+  40  |       });
+  41  |     });
+  42  |     await page.route('**/api/getRegisterClients', async route => {
+  43  |       await route.fulfill({
+  44  |         status: 200,
+  45  |         contentType: 'application/json',
+  46  |         body: JSON.stringify({ data: [{ title: 'Clientes', icon: 'bi-people', count: 0, color: 'green' }] })
+  47  |       });
+  48  |     });
+  49  |     await page.route('**/api/getVentasMes', async route => {
+  50  |       await route.fulfill({
+  51  |         status: 200,
+  52  |         contentType: 'application/json',
+  53  |         body: JSON.stringify({ data: [{ title: 'Ventas Mes', icon: 'bi-cart', count: 0, color: 'orange' }] })
+  54  |       });
+  55  |     });
+  56  |     await page.route('**/api/getDailySales', async route => {
+  57  |       await route.fulfill({
+  58  |         status: 200,
+  59  |         contentType: 'application/json',
+  60  |         body: JSON.stringify({ data: [{ title: 'Ventas Diarias', icon: 'bi-cash', count: 0, color: 'purple' }] })
+  61  |       });
+  62  |     });
+  63  |     await page.route('**/api/getVentasMesAnterior', async route => {
+  64  |       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+  65  |     });
+  66  |     await page.route('**/api/sellsLastThreeMonths', async route => {
+  67  |       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+  68  |     });
+  69  |     await page.route('**/api/CategoriesMostSold', async route => {
+  70  |       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+  71  |     });
+  72  |     await page.route('**/api/getReviews', async route => {
+  73  |       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+  74  |     });
+  75  | 
+  76  |     // Mockear cargos
+  77  |     await page.route('**/api/cargos', async route => {
+  78  |       await route.fulfill({
+  79  |         status: 200,
+  80  |         contentType: 'application/json',
+  81  |         body: JSON.stringify({
+  82  |           status: 'success',
+  83  |           data: [
+  84  |             { id: 1, titulo: 'Desarrollador', departamento: 'Sistemas' },
+  85  |             { id: 2, titulo: 'Contador', departamento: 'Contabilidad' }
+  86  |           ]
+  87  |         })
+  88  |       });
+  89  |     });
+  90  | 
+  91  |     // Mockear lista de empleados
+  92  |     await page.route('**/api/empleados', async route => {
+  93  |       if (route.request().method() === 'GET') {
+  94  |         await route.fulfill({
+  95  |           status: 200,
+  96  |           contentType: 'application/json',
+  97  |           body: JSON.stringify({
+  98  |             status: 'success',
+  99  |             data: [
+  100 |               { id: 1, nombres: 'Carlos', apellidos: 'Perez', dui: '12345678-9', nit: '1234-567890-123-4', departamento: 'Sistemas', cargo: 'Desarrollador', salario_base: 1500, estado: 'ACTIVO' },
+  101 |               { id: 2, nombres: 'Ana', apellidos: 'Gomez', dui: '87654321-0', nit: '4321-098765-321-0', departamento: 'Contabilidad', cargo: 'Contador', salario_base: 1200, estado: 'ACTIVO' }
+  102 |             ]
+  103 |           })
+  104 |         });
+  105 |       }
+  106 |     });
+  107 |   });
+  108 | 
+  109 |   const navigateToEmployees = async (page) => {
+  110 |     await doLogin(page);
+> 111 |     await page.click('button:has-text("Empleados")');
+      |                ^ Error: page.click: Test timeout of 30000ms exceeded.
+  112 |   };
+  113 | 
+  114 |   test('Caso 1: Visualizacion de la lista de colaboradores', async ({ page }) => {
+  115 |     await navigateToEmployees(page);
+  116 |     await expect(page.locator('text=Gestión de Empleados')).toBeVisible();
+  117 |     await expect(page.locator('text=Carlos Perez')).toBeVisible();
+  118 |     await expect(page.locator('text=Ana Gomez')).toBeVisible();
+  119 |   });
+  120 | 
+  121 |   test('Caso 2: Acceso al formulario de registro de empleado', async ({ page }) => {
+  122 |     await navigateToEmployees(page);
+  123 |     await page.click('button:has-text("Registrar Empleado")');
+  124 |     await expect(page.locator('text=Registro de Nuevo Empleado')).toBeVisible();
+  125 |     await expect(page.locator('input[name="nombres"]')).toBeVisible();
+  126 |   });
+  127 | 
+  128 |   test('Caso 3: Registro exitoso de colaborador', async ({ page }) => {
+  129 |     await page.route('**/api/empleados', async route => {
+  130 |       if (route.request().method() === 'POST') {
+  131 |         await route.fulfill({
+  132 |           status: 200,
+  133 |           contentType: 'application/json',
+  134 |           body: JSON.stringify({ status: 'success', message: 'Empleado registrado correctamente.' })
+  135 |         });
+  136 |       }
+  137 |     });
+  138 | 
+  139 |     await navigateToEmployees(page);
+  140 |     await page.click('button:has-text("Registrar Empleado")');
+  141 | 
+  142 |     await page.fill('input[name="nombres"]', 'Luis Alberto');
+  143 |     await page.fill('input[name="apellidos"]', 'Martínez');
+  144 |     await page.fill('input[name="dui"]', '11223344-5');
+  145 |     await page.fill('input[name="nit"]', '1122-334455-667-8');
+  146 |     await page.fill('input[name="fecha_ingreso"]', '2026-06-01');
+  147 |     await page.selectOption('select[name="id_cargo"]', '1');
+  148 |     await page.selectOption('select[name="estado"]', 'ACTIVO');
+  149 | 
+  150 |     await page.click('button[type="submit"]');
+  151 | 
+  152 |     await expect(page.locator('.swal2-popup')).toBeVisible();
+  153 |     await expect(page.locator('.swal2-html-container')).toContainText('Empleado registrado correctamente.');
+  154 |     await page.click('.swal2-confirm');
+  155 |   });
+  156 | 
+  157 |   test('Caso 4: Filtrado dinámico por buscador', async ({ page }) => {
+  158 |     await navigateToEmployees(page);
+  159 |     const searchInput = page.locator('input[placeholder="Buscar por nombre, DUI, cargo..."]');
+  160 |     await expect(searchInput).toBeVisible();
+  161 | 
+  162 |     await searchInput.fill('Carlos');
+  163 |     await expect(page.locator('text=Carlos Perez')).toBeVisible();
+  164 |     await expect(page.locator('text=Ana Gomez')).not.toBeVisible();
+  165 |   });
+  166 | 
+  167 |   test('Caso 5: Filtrado dinámico por departamento', async ({ page }) => {
+  168 |     await navigateToEmployees(page);
+  169 |     const selectDpto = page.locator('select:has-text("Todos los Departamentos")');
+  170 |     await expect(selectDpto).toBeVisible();
+  171 | 
+  172 |     await selectDpto.selectOption('Sistemas');
+  173 |     await expect(page.locator('text=Carlos Perez')).toBeVisible();
+  174 |     await expect(page.locator('text=Ana Gomez')).not.toBeVisible();
+  175 |   });
+  176 | 
+  177 |   test('Caso 6: Alerta por DUI con formato inválido', async ({ page }) => {
+  178 |     await navigateToEmployees(page);
+  179 |     await page.click('button:has-text("Registrar Empleado")');
+  180 | 
+  181 |     await page.fill('input[name="nombres"]', 'Jose');
+  182 |     await page.fill('input[name="apellidos"]', 'Rivas');
+  183 |     await page.fill('input[name="dui"]', '12345');
+  184 |     await page.fill('input[name="nit"]', '1122-334455-667-8');
+  185 |     await page.fill('input[name="fecha_ingreso"]', '2026-06-01');
+  186 |     await page.selectOption('select[name="id_cargo"]', '1');
+  187 | 
+  188 |     await page.click('button[type="submit"]');
+  189 | 
+  190 |     await expect(page.locator('.swal2-popup')).toBeVisible();
+  191 |     await expect(page.locator('.swal2-title')).toContainText('DUI Inválido');
+  192 |     await page.click('.swal2-confirm');
+  193 |   });
+  194 | 
+  195 |   test('Caso 7: Alerta por NIT con formato inválido', async ({ page }) => {
+  196 |     await navigateToEmployees(page);
+  197 |     await page.click('button:has-text("Registrar Empleado")');
+  198 | 
+  199 |     await page.fill('input[name="nombres"]', 'Jose');
+  200 |     await page.fill('input[name="apellidos"]', 'Rivas');
+  201 |     await page.fill('input[name="dui"]', '12345678-9');
+  202 |     await page.fill('input[name="nit"]', '1234');
+  203 |     await page.fill('input[name="fecha_ingreso"]', '2026-06-01');
+  204 |     await page.selectOption('select[name="id_cargo"]', '1');
+  205 | 
+  206 |     await page.click('button[type="submit"]');
+  207 | 
+  208 |     await expect(page.locator('.swal2-popup')).toBeVisible();
+  209 |     await expect(page.locator('.swal2-title')).toContainText('NIT Inválido');
+  210 |     await page.click('.swal2-confirm');
+  211 |   });
+```

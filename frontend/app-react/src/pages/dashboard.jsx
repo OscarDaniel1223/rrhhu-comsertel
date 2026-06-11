@@ -3,22 +3,14 @@ import Swal from "sweetalert2";
 import Navbar from "../components/Navbar";
 import useRenderContent from "../hooks/useRenderContent";
 import Footer from "../components/footer/Footer";
-import "../css/footer.css";
-import "../css/index.css";
 import { useAuth } from "../providers/AuthContext";
 
-
-
 export default function Dashboard() {
-
-
 
   const [activeItem, setActiveItem] = useState("home");
   const isAuthenticated = !!localStorage.getItem('token');
   const cambio_pass = localStorage.getItem('cambio_pass');
-
   const { user } = useAuth();
-
   const { content, validItem } = useRenderContent(activeItem, user.rol);
 
   useEffect(() => {
@@ -33,10 +25,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="flex flex-col min-h-screen bg-[#f7f9fb]">
 
       {/* Contenido principal */}
-      <div className="d-flex flex-grow-1">
+      <div className="flex flex-1">
 
         <div className="nav_contenedor">
           <Navbar
@@ -47,7 +39,7 @@ export default function Dashboard() {
 
         <div
           id="content"
-          className="flex-grow-1 overflow-auto"
+          className="flex-1 overflow-auto"
         >
           {content}
         </div>
