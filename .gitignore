@@ -70,3 +70,7 @@ datos_prueba.sql
 dist/
 build/
 out/
+
+# Playwright Test Outputs
+frontend/app-react/test-results/
+frontend/app-react/playwright-report/

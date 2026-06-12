@@ -84,3 +84,12 @@ export default CardEmpleado;
 
 - **Organización de Formularios:** Los inputs y outputs deben fluir secuencialmente hacia abajo (en una columna) para facilitar la lectura. Es preferible agruparlos usando `flex flex-col gap-4` en lugar de usar `grid` con varias columnas que puedan desordenar visualmente el espacio cuando se ajustan automáticamente.
 - **Textos y Sombras:** Usar siempre sombras suaves (`shadow-sm`), bordes sutiles (`border-slate-200`) y colores limpios para el texto (`text-black` para énfasis, `text-slate-500` para descripciones).
+
+## 8. Soporte de Modo Oscuro (Tailwind CSS)
+- **Implementacion:** Todos los componentes modificados o nuevos deben implementar el modo oscuro nativo usando el prefijo `dark:` de Tailwind CSS (ej. `bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100`).
+- **Control Global:** El estado de modo oscuro se gestiona globalmente mediante el `ThemeContext`, el cual agrega o remueve la clase `.dark` tanto del `document.documentElement` como de `document.body`.
+- **Estructura CSS:** Se debe declarar en la raiz el variante de Tailwind correspondiente para el modo oscuro si se utilizan caracteristicas avanzadas (ej. `@variant dark (&:where(.dark, .dark *));`).
+
+## 9. Pruebas Automatizadas y Tolerancia a Fallos (QA)
+- **Pruebas E2E:** Cada modificacion de componentes criticos (Login, Formularios de Empleados/Usuarios) debe validarse utilizando la suite de pruebas de Playwright.
+- **Pruebas Adversariales:** Se han implementado pruebas en `adversarial.spec.js` para asegurar que la aplicacion soporte errores de red inesperados (como codigos de estado 500) y que los formularios desinfecten inputs frente a scripts maliciosos (XSS), impidiendo que se ejecuten o rompan la UI.

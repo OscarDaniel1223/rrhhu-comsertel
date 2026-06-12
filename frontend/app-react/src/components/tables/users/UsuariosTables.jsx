@@ -1,6 +1,4 @@
 import React, { useState, useMemo, useContext } from "react";
-import Badge from "react-bootstrap/Badge";
-import Button from "react-bootstrap/Button";
 import DataTable, { createTheme } from "react-data-table-component";
 import { ThemeContext } from "../../../providers/ThemeContext";
 import { showError, showSuccess, showQuestion, showLoading } from '../../../utils/alerts';
@@ -12,30 +10,29 @@ import { getUsuarioByIdServices } from "../../../services/users/getUsuarioByIdSe
 
 createTheme('customDark', {
     text: {
-        primary: '#FFFFFF',
-        secondary: '#CCCCCC',
+        primary: '#f8fafc',
+        secondary: '#94a3b8',
     },
     background: {
-        default: '#1f2d40',
-        text: '#fff',
+        default: '#0f172a',
+        text: '#f8fafc',
     },
     context: {
-        background: '#1f2d40',
-        text: '#FFFFFF',
+        background: '#0f172a',
+        text: '#f8fafc',
     },
     divider: {
-        default: '#2c3e50',
+        default: '#334155',
     },
     rows: {
         highlightOnHoverStyle: {
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#FFFFFF',
-            transition: 'background-color 0.2s ease-in-out',
+            backgroundColor: '#1e293b', // color hover
+            color: '#f8fafc',
+            transition: '0.2s ease-in-out',
             cursor: 'pointer',
         },
     },
 }, 'dark');
-
 
 
 
@@ -81,7 +78,17 @@ export default function UsuariosTables({ data, refreshUsers }) {
         },
         {
             name: "Estado",
-            selector: row => (row.estado === 1 ? <Badge bg="success">Activo</Badge> : <Badge bg="danger">Inactivo</Badge>),
+            selector: row => (
+                row.estado === 1 ? (
+                    <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Activo
+                    </span>
+                ) : (
+                    <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                        Inactivo
+                    </span>
+                )
+            ),
             sortable: true,
         },
         {
@@ -89,19 +96,28 @@ export default function UsuariosTables({ data, refreshUsers }) {
             selector: row => (
 
                 (row.estado === 1) ? (
-                    <div>
-                        <Button onClick={() => handleEdit(row.id_usuario)} variant="warning" size="sm">
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => handleEdit(row.id_usuario)} 
+                            className="px-2.5 py-1 text-xs font-medium text-amber-800 bg-amber-100 hover:bg-amber-200 dark:text-amber-300 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 rounded transition-colors duration-200"
+                        >
                             Editar
-                        </Button>
-                        <Button onClick={() => handleDelete(row.id_usuario)} variant="danger" size="sm">
+                        </button>
+                        <button 
+                            onClick={() => handleDelete(row.id_usuario)} 
+                            className="px-2.5 py-1 text-xs font-medium text-red-800 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded transition-colors duration-200"
+                        >
                             Eliminar
-                        </Button>
+                        </button>
                     </div>
                 ) : (
                     <div>
-                        <Button onClick={() => handleActivate(row.id_usuario)} variant="success" size="sm">
+                        <button 
+                            onClick={() => handleActivate(row.id_usuario)} 
+                            className="px-2.5 py-1 text-xs font-medium text-green-800 bg-green-100 hover:bg-green-200 dark:text-green-300 dark:bg-green-900/30 dark:hover:bg-green-900/50 rounded transition-colors duration-200"
+                        >
                             Activar
-                        </Button>
+                        </button>
                     </div>
                 )
             ),
@@ -206,25 +222,20 @@ export default function UsuariosTables({ data, refreshUsers }) {
             placeholder="Buscar..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            style={{
-                padding: "6px 12px",
-                borderRadius: 4,
-                border: "1px solid #ccc",
-                width: "250px",
-            }}
+            className="px-3 py-1.5 w-[250px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-md placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors"
         />
     );
     const { darkMode } = useContext(ThemeContext);
     const customStyles = {
         rows: {
             style: {
-                backgroundColor: darkMode ? "#1f2d40" : "#fff",
-                color: darkMode ? "#fff" : "#000",
+                backgroundColor: darkMode ? "#0f172a" : "#fff",
+                color: darkMode ? "#f8fafc" : "#0f172a",
             },
             highlightOnHoverStyle: {
                 backgroundColor: darkMode
-                    ? "rgba(255,255,255,0.05)"
-                    : "#f2f2f2",
+                    ? "#1e293b"
+                    : "#f1f5f9",
                 cursor: "pointer",
                 transition: "background-color 0.2s ease-in-out",
             },
@@ -247,7 +258,6 @@ export default function UsuariosTables({ data, refreshUsers }) {
                 customStyles={customStyles}
                 theme={darkMode ? "customDark" : "default"}
             />
-
         </>
     );
 }

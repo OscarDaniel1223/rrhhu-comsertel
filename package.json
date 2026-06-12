@@ -1,0 +1,13 @@
+{
+  "name": "rrhhu-comsertel-root",
+  "version": "1.0.0",
+  "description": "Script de ejecucion simultanea de backend y frontend para la gestion de RRHH de Comsertel",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend/app-react\"",
+    "install-all": "npm install --prefix backend && npm install --prefix frontend/app-react"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

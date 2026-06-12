@@ -68,55 +68,53 @@ El proyecto es una aplicación web full-stack diseñada para la gestión de recu
 ## 3. Arquitectura y Tecnologías
 
 ### Frontend
-- **Framework:** React (Vite)
-- **Estilos:** Tailwind CSS y Bootstrap (Coexistencia actual)
-- **Navegación:** React Router DOM
-- **Gráficos:** Recharts
+- **Framework:** React 19 (Vite)
+- **Estilos:** Tailwind CSS (Uso exclusivo, soporte para Modo Oscuro nativo a nivel del documento)
+- **Navegacion:** React Router DOM
+- **Graficos:** Recharts
 
 ### Backend
-- **Entorno:** Node.js
-- **Framework:** Express
-- **Base de Datos:** MariaDB (anteriormente MySQL)
-- **Autenticación:** JSON Web Tokens (JWT) y bcryptjs.
+- **Entorno:** Node.js (v20.x o superior)
+- **Framework:** Express.js (v5.1.0)
+- **Base de Datos:** MariaDB / MySQL (mysql2 con promesas)
+- **Autenticacion:** JSON Web Tokens (JWT) y bcryptjs.
 
 ---
 
-## 4. Inventario de Librerías y Dependencias
+## 4. Inventario de Librerias y Dependencias
 
 ### Backend
-| Librería | Procedencia | Licencia | Uso en el Proyecto |
+| Libreria | Procedencia | Licencia | Uso en el Proyecto |
 | :--- | :--- | :--- | :--- |
 | **express** | npm | MIT | Framework principal para la API REST. |
-| **mysql2** | npm | MIT | Driver para la conexión con MariaDB/MySQL. |
-| **jsonwebtoken** | npm | MIT | Generación y validación de tokens de seguridad (Login). |
-| **bcryptjs** | npm | MIT | Encriptación de contraseñas de usuarios. |
+| **mysql2** | npm | MIT | Driver para la conexion con MariaDB/MySQL. |
+| **jsonwebtoken** | npm | MIT | Generacion y validacion de tokens de seguridad (Login). |
+| **bcryptjs** | npm | MIT | Encriptacion de contrasenas de usuarios. |
 | **cors** | npm | MIT | Permitir peticiones desde el frontend (puerto 5173). |
-| **nodemon** | npm | MIT | Recarga automática del servidor en desarrollo (Dev tool). |
+| **nodemon** | npm | MIT | Recarga automatica del servidor en desarrollo (Dev tool). |
 | **body-parser** | npm | MIT | Middleware para parsear el cuerpo de las peticiones HTTP. |
 
 ### Frontend
-| Librería | Procedencia | Licencia | Uso en el Proyecto |
+| Libreria | Procedencia | Licencia | Uso en el Proyecto |
 | :--- | :--- | :--- | :--- |
-| **react** | npm | MIT | Librería principal de UI. |
+| **react** | npm | MIT | Libreria principal de UI. |
 | **axios** | npm | MIT | Cliente HTTP para consumir la API del backend. |
-| **bootstrap** | npm | MIT | Framework de estilos (CSS tradicional y componentes). |
-| **react-bootstrap** | npm | MIT | Componentes de Bootstrap adaptados a React (Modales, Cards). |
-| **tailwindcss** | npm | MIT | Framework de utilidades CSS (Configurado pero con uso limitado). |
-| **react-router-dom** | npm | MIT | Manejo de rutas y navegación entre páginas. |
-| **recharts** | npm | MIT | Generación de gráficos en el Dashboard. |
-| **react-data-table-component** | npm | MIT | Visualización de datos en tablas con filtros y paginación. |
-| **sweetalert2** | npm | MIT | Modales de alerta y confirmación personalizados. |
+| **tailwindcss** | npm | MIT | Framework de utilidades CSS (Estilo exclusivo para toda la UI, incluye variacion dark). |
+| **react-router-dom** | npm | MIT | Manejo de rutas y navegacion entre paginas. |
+| **recharts** | npm | MIT | Generacion de graficos en el Dashboard. |
+| **react-data-table-component** | npm | MIT | Visualizacion de datos en tablas con filtros y paginacion. |
+| **sweetalert2** | npm | MIT | Modales de alerta y confirmacion personalizados. |
 | **react-select** | npm | MIT | Selectores avanzados (usado en roles y formularios). |
 
 ---
 
-## 5. Configuración con Docker (MariaDB)
+## 5. Configuracion con Docker (MariaDB)
 
 Para facilitar el despliegue y desarrollo, se recomienda utilizar MariaDB mediante Docker.
 
 ### Instrucciones para montar la instancia:
 
-1.  **Asegúrate de tener Docker instalado.**
+1.  **Asegurate de tener Docker instalado.**
 2.  **Ejecuta el siguiente comando en tu terminal:**
     ```bash
     docker run --name mariadb-comsertel \
@@ -125,8 +123,8 @@ Para facilitar el despliegue y desarrollo, se recomienda utilizar MariaDB median
       -p 3306:3306 \
       -d mariadb:latest
     ```
-3.  **Configuración del Backend:**
-    Asegúrate de que en `backend/config/db.js` los datos coincidan:
+3.  **Configuracion del Backend:**
+    Asegurate de que en `backend/config/db.js` los datos coincidan:
     - Host: `localhost`
     - User: `root`
     - Password: `123`
@@ -134,26 +132,26 @@ Para facilitar el despliegue y desarrollo, se recomienda utilizar MariaDB median
 
 ---
 
-## 6. Transición al Nuevo Modelo de Datos (1NF, 2NF, 3NF)
+## 6. Transicion al Nuevo Modelo de Datos (1NF, 2NF, 3NF)
 
-El proyecto está evolucionando desde un esquema genérico inicial (encontrado en **`comsertel.sql`**) hacia uno altamente normalizado basado en **`Nueva-base.txt`** (esquema `comsertel_rh`) que cumple con las primeras tres formas normales.
+El proyecto esta evolucionando desde un esquema generico inicial (encontrado en **`comsertel.sql`**) hacia uno altamente normalizado basado en **`Nueva-base.txt`** (esquema `comsertel_rh`) que cumple con las primeras tres formas normales.
 
-**Objetivos de la transición:**
-- Migrar de la gestión de inventario básica de `comsertel.sql` a la gestión de planillas profesional.
+**Objetivos de la transicion:**
+- Migrar de la gestion de inventario basica de `comsertel.sql` a la gestion de planillas profesional.
 - Eliminar redundancias en nombres de departamentos y cargos.
 - Asegurar la integridad referencial.
-- Facilitar el cálculo de planillas basado en leyes salvadoreñas (ISSS, AFP, Renta).
+- Facilitar el calculo de planillas basado en leyes salvadorenas (ISSS, AFP, Renta).
 
-*Para más detalles sobre el nuevo esquema, consulta:* `Documentacion/Nuevo-Modelo-BD.md`.
-
----
-
-## 7. Puntos Importantes a Mejorar
-
-1.  **Conflicto de Frameworks CSS (Bootstrap vs Tailwind):** Actualmente se utilizan ambos. Se recomienda elegir uno (preferiblemente Tailwind) y migrar gradualmente.
-2.  **Estructura Pesada:** Es necesario refactorizar componentes para que sean más granulares y modulares.
-3.  **Variables de Entorno:** Mover las credenciales de la DB y secretos de JWT a un archivo `.env`.
-4.  **Validaciones:** Reforzar las validaciones tanto en el frontend como en el backend.
+*Para mas detalles sobre el nuevo esquema, consulta:* `Documentacion/Nuevo-Modelo-BD.md`.
 
 ---
-*Documentación actualizada el 5 de mayo de 2026.*
+
+## 7. Puntos Importantes Completados y Mejoras
+
+1.  **Saneamiento de Frameworks CSS (Resuelto):** Se elimino por completo la dependencia de Bootstrap y React Bootstrap. Ahora la interfaz de usuario esta disenada en su totalidad con Tailwind CSS.
+2.  **Modo Oscuro Integrado:** Se configuro un Modo Oscuro nativo a nivel global mediante `ThemeContext` y el uso de la clase `.dark` en el `documentElement`/`body`, sincronizado con estilos condicionales `dark:` en Tailwind.
+3.  **Pruebas Adversariales E2E:** Se introdujo una suite de pruebas automatizadas con Playwright (`tests/e2e/adversarial.spec.js`) para validar la resistencia de los formularios ante inyecciones de codigo (XSS) y fallos del backend (codigos 500).
+4.  **Ejecucion y Gestion Simplificada:** Se creo un `package.json` en la raiz del repositorio con comandos basados en `concurrently` para lanzar backend y frontend simultaneamente con un solo comando (`npm run dev`).
+
+---
+*Documentacion actualizada el 12 de junio de 2026.*

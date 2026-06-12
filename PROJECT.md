@@ -22,11 +22,11 @@ La aplicacion utiliza React con Vite y Tailwind CSS v4. Se eliminaran todas las 
 | # | Hito | Descripcion | Dependencias | Status |
 |---|------|-------------|--------------|--------|
 | M1 | E2E Testing Track | Configuracion de la infraestructura de pruebas E2E e implementacion de las pruebas Tiers 1-4 | Ninguno | DONE |
-| M2 | Componentes Atomicos | Migracion de BtnLogout.jsx, Header.jsx, SmallCard.jsx, ReviewsTables.jsx, Employees.jsx | M1 | PLANNED |
-| M3 | Componentes Complejos y Tablas | Migracion de ReviewsCard.jsx, UsersCard.jsx, UsuariosTables.jsx | M2 | PLANNED |
-| M4 | Formularios y Modales | Migracion de LoginForm.jsx, Modal_default.jsx, Modal_edit.jsx | M3 | PLANNED |
-| M5 | Vistas de Alto Nivel | Migracion de Home.jsx, Users.jsx | M4 | PLANNED |
-| M6 | Endurecimiento E2E | Verificacion de cobertura final de pruebas E2E y pruebas adversariales (Tier 5) | M5 | PLANNED |
+| M2 | Componentes Atomicos | Migracion de BtnLogout.jsx, Header.jsx, SmallCard.jsx, ReviewsTables.jsx, Employees.jsx | M1 | DONE |
+| M3 | Componentes Complejos y Tablas | Migracion de ReviewsCard.jsx, UsersCard.jsx, UsuariosTables.jsx | M2 | DONE |
+| M4 | Formularios y Modales | Migracion de LoginForm.jsx, Modal_default.jsx, Modal_edit.jsx | M3 | DONE |
+| M5 | Vistas de Alto Nivel | Migracion de Home.jsx, Users.jsx | M4 | DONE |
+| M6 | Endurecimiento E2E | Verificacion de cobertura final de pruebas E2E y pruebas adversariales (Tier 5) | M5 | DONE |
 
 ## Interface Contracts
 - **LoginForm.jsx:** Debe recibir `onLogin` y mantener el callback intacto.

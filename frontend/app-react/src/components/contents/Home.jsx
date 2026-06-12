@@ -5,7 +5,6 @@ import Barchart from "../charts/Barchart";
 import { ventasUltimosTresMesesService } from "../../services/stadistics/ventasUltimosTresMesesService";
 import { categoriasMasVendidasService } from "../../services/stadistics/categoriasMasVendidasService";
 import useRenderGraphic from "../../hooks/useRenderGraphic";
-import Card from 'react-bootstrap/Card';
 import SmallCard from "../cards/SmallCard";
 import { useAuth } from "../../providers/AuthContext";
 import ReviewsCard from "../cards/ReviewsCard";
@@ -24,100 +23,47 @@ export default function Home() {
 
   const { user } = useAuth();
 
-
-
   return (
     <>
       <Header title="Estadísticas" subtitle="Aquí puedes ver estadísticas generales." />
 
-      <div
-        className="
-    contenedor
-   
-    p-6 
-    rounded-xl
-    max-h-screen      /* Máximo alto = alto total de la pantalla */
-    overflow-y-auto   /* Scroll vertical */
-  "
-      >
+      <div className="p-6 rounded-xl max-h-screen overflow-y-auto transition-colors duration-200">
         {
           user.rol == 1 && (
-            <>
-
-
-              <div className="row g-3 mt-2">
-
-                <div className="col-12 col-sm-6 col-lg-3">
-                  <SmallCard title={userRegister.title} icon={userRegister.icon} count={userRegister.count} color={userRegister.color} />
-                </div>
-
-                <div className="col-12 col-sm-6 col-lg-3">
-                  <SmallCard title={clientRegister.title} icon={clientRegister.icon} count={clientRegister.count} color={clientRegister.color} />
-                </div>
-
-                <div className="col-12 col-sm-6 col-lg-3">
-                  <SmallCard title={dailySales.title} icon={dailySales.icon} count={dailySales.count} color={dailySales.color} />
-                </div>
-
-                <div className="col-12 col-sm-6 col-lg-3">
-                  <SmallCard title={ventasMes.title} icon={ventasMes.icon} count={ventasMes.count} color={ventasMes.color} />
-                </div>
-
-              </div>
-            </>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
+              <SmallCard title={userRegister.title} icon={userRegister.icon} count={userRegister.count} color={userRegister.color} />
+              <SmallCard title={clientRegister.title} icon={clientRegister.icon} count={clientRegister.count} color={clientRegister.color} />
+              <SmallCard title={dailySales.title} icon={dailySales.icon} count={dailySales.count} color={dailySales.color} />
+              <SmallCard title={ventasMes.title} icon={ventasMes.icon} count={ventasMes.count} color={ventasMes.color} />
+            </div>
           )
         }
 
-
-
-        <div className="row mt-2 p-6 rounded-xl">
-          <div className="col-12 col-sm-12 col-md-12 col-lg-6">
-
-            <Card className="p-6 rounded-xl">
-              <Card.Body>
-                <Card.Title style={{ textAlign: "center" }}>Ventas ultimos 3 meses</Card.Title>
-
-                <Linechart data={dataLine.data} />
-
-              </Card.Body>
-            </Card>
-
-          </div>
-          <div className="col-12 col-sm-12 col-md-12 col-lg-6">
-            <Card className="p-6 rounded-xl">
-              <Card.Body>
-                <Card.Title style={{ textAlign: "center" }}>Top 5 categorias mas vendidas este mes</Card.Title>
-
-                <Barchart data={dataBar.data} height={250} />
-
-              </Card.Body>
-            </Card>
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Ventas últimos 3 meses */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6 transition-colors duration-200">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white text-center mb-4">Ventas últimos 3 meses</h3>
+            <Linechart data={dataLine.data} />
           </div>
 
-          <div className="col-12 p-6 mt-2">
-            <Card className="p-6 rounded-xl">
-              <Card.Body>
-                <Card.Title style={{ textAlign: "center" }}>Ingresos este mes vs mes anterior</Card.Title>
-
-                <DoubleLineChart data={dataDoubleLine.data} />
-
-
-              </Card.Body>
-            </Card>
-
+          {/* Top 5 categorías más vendidas */}
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6 transition-colors duration-200">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white text-center mb-4">Top 5 categorías más vendidas este mes</h3>
+            <Barchart data={dataBar.data} height={250} />
           </div>
 
-          {/*Tabla de reseñas */}
+          {/* Ingresos este mes vs anterior */}
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-6 transition-colors duration-200">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white text-center mb-4">Ingresos este mes vs mes anterior</h3>
+            <DoubleLineChart data={dataDoubleLine.data} />
+          </div>
 
-          <div className="col-12 mt-2">
+          {/* Tabla de reseñas */}
+          <div className="lg:col-span-2 mt-2">
             <ReviewsCard />
           </div>
-
-
         </div>
-
       </div >
     </>
   );
-
 }

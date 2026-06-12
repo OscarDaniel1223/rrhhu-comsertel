@@ -25,7 +25,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f7f9fb]">
+    <div className="flex flex-col min-h-screen bg-[#f7f9fb] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
       {/* Contenido principal */}
       <div className="flex flex-1">
@@ -39,15 +39,16 @@ export default function Dashboard() {
 
         <div
           id="content"
-          className="flex-1 overflow-auto"
+          className="flex-1 flex flex-col lg:pl-64 overflow-auto"
         >
-          {content}
+          <div className="flex-1">
+            {content}
+          </div>
+          {/* Footer dentro del área de contenido para alineación perfecta */}
+          <Footer />
         </div>
 
       </div>
-
-      {/* Footer abajo */}
-      <Footer />
 
     </div>
 
