@@ -88,12 +88,14 @@ CREATE TABLE boletas_pago (
    afp_empleado DECIMAL(10, 2) NOT NULL,
    renta DECIMAL(10, 2) NOT NULL,
    descuento_ausencias DECIMAL(10, 2) DEFAULT 0.00,
+   -- Prestaciones Economicas Extraordinarias (Exenta de ISSS/AFP/Renta)
+   quincena_veinticinco DECIMAL(10, 2) DEFAULT 0.00,
    -- Total a pagar
    salario_neto DECIMAL(10, 2) NOT NULL,
    -- Costeo Patronal (Obligaciones de la empresa)
    isss_patrono DECIMAL(10, 2) NOT NULL,
    afp_patrono DECIMAL(10, 2) NOT NULL,
-   insaforp_patrono DECIMAL(10, 2) NOT NULL,
+   incaf_patrono DECIMAL(10, 2) NOT NULL,
    FOREIGN KEY (id_planilla) REFERENCES planillas(id),
    FOREIGN KEY (id_empleado) REFERENCES empleados(id),
    UNIQUE(id_planilla, id_empleado) -- Un empleado tiene solo una boleta por planilla
@@ -103,3 +105,12 @@ CREATE TABLE boletas_pago (
 INSERT INTO rh_departamentos (nombre) VALUES ('Ventas en Campo'), ('Back Office'), ('Operaciones Técnicas');
 INSERT INTO cargos (titulo, salario_base, id_departamento) VALUES ('Vendedor Toque en Frío', 365.00, 1), ('Técnico de Instalación', 450.00, 3), ('Jefe Operativo', 800.00, 2);
 ```
+### Detalles del script de migración:
+  
+  1. Preservación de datos: Al utilizar  ADD COLUMN  con un valor  DEFAULT 0.00 , todos los registros de boletas históricas se
+  actualizarán automáticamente con un valor de  0.00  en el campo  quincena_veinticinco , evitando valores nulos y garantizando     
+  consistencia.                                                                                                                     
+  2. Compatibilidad en el renombramiento: Se emplea la instrucción  CHANGE COLUMN  en lugar de  RENAME COLUMN  debido a que es
+  soportada de forma universal por versiones tanto antiguas como modernas de MariaDB y MySQL. Esto migrará el campo                 
+  insaforp_patrono  a  incaf_patrono  manteniendo su tipo de dato ( DECIMAL(10, 2) NOT NULL ) y conservando intactos todos los
+  registros históricos de aportes patronales que ya hayan sido calculados.

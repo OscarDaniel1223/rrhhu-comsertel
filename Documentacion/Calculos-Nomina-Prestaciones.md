@@ -26,18 +26,22 @@ Al contrastar la lógica de negocio previa con la investigación formal [Investi
 
 ### 2.1 Salario Nominal Devengado (Tarea 4)
 Representa la retribución económica total del período evaluado:
-$$\text{Salario Devengado} = \text{Salario Base Proporcional} + \text{Beneficios} + \text{Vacaciones} + \text{Aguinaldo} - \text{Descuento Ausencias}$$
+$$\text{Salario Devengado} = \text{Salario Base Proporcional} + \text{Beneficios} + \text{Vacaciones} + \text{Aguinaldo} + \text{Quincena Veinticinco} - \text{Descuento Ausencias}$$
 * **Descuento por Ausencia Injustificada:** Calculado sobre los días reales de traslape entre las ausencias del tipo `AUSENCIA_INJUSTIFICADA` aprobadas y el rango de fechas de la planilla. Su valor diario equivale a $\text{Salario Base} / 30.0$.
 * Si el período de planilla es **QUINCENAL**, el salario base asignado para el cálculo es proporcional ($\text{Salario Base} / 2.0$).
+* **Quincena Veinticinco (Decreto No. 499):** Ingreso extraordinario que incrementa el devengado del empleado, pero que cuenta con exenciones fiscales y de cotizaciones.
 
 ### 2.2 Deducciones y Aportes de Ley (Tarea 4)
-* **AFP Empleado y Patrono:** Se cotiza el 7.25% (empleado) y 8.75% (patrono) sobre el salario cotizable de seguridad social, topado a un límite máximo mensual de $7,028.29.
+* **AFP Empleado y Patrono:** Se cotiza el 7.25% (empleado) y 8.75% (patrono) sobre el salario cotizable de seguridad social, topado a un límite máximo mensual de $7,028.29. La base cotizable de seguridad social se obtiene restando el Aguinaldo ordinario y la Quincena Veinticinco del Salario Devengado.
 * **ISSS Empleado y Patrono:** Se cotiza el 3.00% (empleado) y 7.50% (patrono) sobre el salario cotizable de seguridad social, topado a un límite máximo mensual de $1,000.00.
-* **INCAF Patrono:** Se provisiona el 1.00% sobre el salario cotizable de seguridad social, topado a $1,000.00, únicamente si la empresa cuenta con 10 o más empleados.
+* **INCAF Patrono (Decreto N.° 893):** Se provisiona sobre el salario cotizable de seguridad social, topado a $1,000.00, únicamente si la empresa cuenta con 10 o más empleados.
+  * Tasa General: 1.00%.
+  * Sector Agropecuario: 0.25% sobre la planilla de salarios de trabajadores permanentes, y 0% (exento) para trabajadores temporales agrícolas.
 
 ### 2.3 Impuesto sobre la Renta (ISR) 2025 (Tarea 4)
 Se aplica sobre la base gravada:
-$$\text{Base Gravada} = \text{Salario Devengado} - \text{Aguinaldo} - \text{AFP Empleado} - \text{ISSS Empleado}$$
+$$\text{Base Gravada} = \text{Salario Devengado} - \text{Aguinaldo} - \text{Quincena Veinticinco} - \text{AFP Empleado} - \text{ISSS Empleado}$$
+* **Exención de la Quincena Veinticinco:** Este rubro califica como renta no gravable y se excluye de la base imponible de retención.
 * **Deducción Especial del Tramo II:** Si el salario devengado anualizado del colaborador ($\text{Salario Devengado} \times \text{períodos anuales}$) es menor o igual a $9,100.00, se deduce de la base gravada el equivalente proporcional de los $1,600.00 anuales ($133.33 para períodos mensuales; $66.67 para quincenales).
 * Una vez deducido, se evalúa en la tabla respectiva (Mensual o Quincenal) del Ministerio de Hacienda 2025 para obtener la retención.
 
@@ -53,6 +57,14 @@ $$\text{Base Gravada} = \text{Salario Devengado} - \text{Aguinaldo} - \text{AFP 
   * Al completar un año continuo de servicio, equivale al pago de 15 días de salario base más una prima del 30% ($\text{Vacaciones} = \frac{\text{Salario Base}}{2} \times 1.30$).
   * En caso de retiros o liquidaciones proporcionales, se calcula a prorrata de los días laborados en el año:
     $$\text{Vacaciones Proporcionales} = \left(\frac{\text{Días Laborados}}{365} \times 15\right) \times \text{Salario Diario} \times 1.30$$
+* **Quincena Veinticinco (Decreto No. 499):**
+  * Aplicabilidad: Empleados con salario nominal mensual menor o igual a $1,500.00 USD.
+  * Monto: 50% del salario nominal mensual del empleado al momento del pago.
+  * Período de pago: Entre el 15 y el 25 de enero de cada año.
+  * Vigencia en Sector Privado: Año 2026 voluntario (configurable por empresa); año 2027 en adelante obligatorio.
+  * Vigencia en Sector Público/Municipal: Obligatorio desde el año 2026.
+  * Finiquitos/Liquidaciones: En caso de despidos sin causa justa antes del 25 de enero en el año evaluado, se calcula la parte proporcional usando la regla matemática de prorrata anual (días trabajados o acumulados sobre 365 días).
+  * Exención total: Libre de ISSS, AFP, Impuesto sobre la Renta y embargos judiciales. Tampoco forma parte de la base de cálculo para aguinaldos ni vacaciones.
 
 ---
 

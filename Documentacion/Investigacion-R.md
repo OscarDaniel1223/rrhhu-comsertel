@@ -36,12 +36,15 @@ Con base en la Ley del Sistema de Ahorro para Pensiones (SAP) (Decreto No. 927),
 
 ### **2.4.3 Capacitación y Formación Profesional (INCAF)**
 
-Con base en la Ley del Instituto Nacional de Capacitación y Formación (INCAF) (Decreto Legislativo N.° 893), los empleadores del sector privado que posean una nómina de diez o más trabajadores están obligados a aportar el 1% sobre el monto total mensual de las planillas de salarios.
+Con base en la Ley del Instituto Nacional de Capacitación y Formación (INCAF) (Decreto Legislativo N.° 893), los empleadores del sector privado e Instituciones Oficiales Autónomas que posean una nómina de diez o más trabajadores están obligados a aportar sobre el monto total mensual de las planillas de salarios.
 
 Es imperativo destacar que el módulo de planillas debe calcular esta provisión como un aporte netamente patronal, sin representar ninguna deducción al salario bruto del empleado. Asimismo, el sistema debe programarse considerando que este cálculo comparte la misma base y techo máximo cotizable de $1,000.00 establecido para las cotizaciones del ISSS.
 
+* **Tasa General:** 1.00% sobre la base cotizable.
+* **Excepción Sector Agropecuario:** Tasa del 0.25% calculada sobre la planilla de salarios de trabajadores permanentes (los trabajadores temporales agrícolas están exentos de esta aportación).
+
 > [!NOTE]
-> **Nota de actualización:** Se verificó que este aporte del 1% patronal de INCAF se aplica únicamente a las empresas del sector privado que cuentan con **diez o más trabajadores** (`Total_Empleados_Empresa >= 10`). Para empresas con menos de 10 trabajadores, el aporte se establece en $0.00.
+> **Nota de actualización:** Se verificó que este aporte patronal de INCAF se aplica únicamente a las empresas que cuentan con **diez o más trabajadores** (`Total_Empleados_Empresa >= 10`). Para empresas con menos de 10 trabajadores, el aporte se establece en $0.00.
 
 
 ### **2.4.4 Renta**
@@ -84,7 +87,24 @@ Según el Artículo 198 del Código de Trabajo, la cuantía mínima del aguinald
 * Para empleados con 3 a menos de 10 años de servicio: equivalente al salario de 19 días.  
 * Para empleados con 10 o más años de servicio: equivalente al salario de 21 días.
 
-El sistema deberá automatizar estos cálculos, respetando, además, las disposiciones transitorias que anualmente emite la Asamblea Legislativa, las cuales suelen exALGORITMO Calculo_De_Planilla_Salarial
+El sistema deberá automatizar estos cálculos, respetando, además, las disposiciones transitorias que anualmente emite la Asamblea Legislativa, las cuales suelen eximir de Impuesto sobre la Renta a los aguinaldos que no excedan ciertos salarios mínimos.
+
+## **2.7 Quincena Veinticinco (Decreto No. 499)**
+
+La "Quincena Veinticinco" es una prestación económica extraordinaria anual aplicable en El Salvador a partir de 2026.
+
+* **Elegibilidad:** Empleados del sector público, municipal y privado con un salario nominal mensual menor o igual a $1,500.00 USD.
+* **Monto:** Equivalente al 50% del salario básico o nominal mensual del trabajador.
+* **Calendario de Pago:** Se efectúa entre el 15 y el 25 de enero de cada año.
+* **Vigencia en Sector Privado:**
+  * Año 2026: Voluntario (el patrono puede decidir no pagarlo, pero de hacerlo goza de crédito fiscal).
+  * Año 2027 en adelante: Obligatorio para todas las empresas.
+* **Vigencia en Sector Público/Municipal:** Obligatorio a partir de 2026.
+* **Finiquitos y Liquidaciones:** Si un trabajador calificado es despedido sin causa justa en enero antes del 25 de enero de ese año, tiene derecho al pago proporcional acumulado de la Quincena Veinticinco calculada según la antigüedad (prorrata anual).
+* **Exención Fiscal y de Ley:** El monto de esta prestación goza de inembargabilidad absoluta y está exento en un 100% de retenciones de seguridad social (ISSS), cotización previsional (AFP) e Impuesto sobre la Renta (ISR). Tampoco se toma como base para el aguinaldo ni las vacaciones.
+
+
+## **ALGORITMO Calculo_De_Planilla_Salarial**
 
 INICIO
 
@@ -92,7 +112,11 @@ INICIO
 LEER Salario_Base, Cargo
 LEER Dias_Laborados, Horas_Extra
 LEER Ausencias_Injustificadas, Llegadas_Tardias  // Obtenido del Módulo de Ausencias e Incapacidades
-LEER Total_Empleados_Empresa                    // Variable global necesaria para validar aporte INCAF
+LEER Total_Empleados_Empresa                    // Variable necesaria para validar aporte INCAF
+LEER Fecha_Calculo, Fecha_Ingreso               // Fechas para cálculos temporales
+LEER Es_Sector_Publico, Es_Voluntario_Aceptado  // Flags para Quincena Veinticinco en 2026
+LEER Es_Finiquito                               // Flag de cálculo por liquidación
+LEER Es_Agropecuario, Es_Temporal_Agricola      // Parámetros de sector para INCAF
 
 // 2. Cálculo de descuentos por tiempo no laborado
 Descuento_Ausencias <- CalcularDescuento(Ausencias_Injustificadas, Llegadas_Tardias)
@@ -100,6 +124,7 @@ Monto_Horas_Extra <- CalcularHorasExtra(Horas_Extra)
 
 Aguinaldo <- 0
 Vacaciones <- 0
+Quincena_Veinticinco <- 0
 
 // 3. Evaluación de beneficios anuales: Aguinaldo
 SI Mes_Actual == "Diciembre" ENTONCES
@@ -111,24 +136,27 @@ SI Cumple_Anio_Servicio_Continuo == VERDADERO ENTONCES
     Vacaciones <- CalcularPagoVacaciones(Salario_Base) // 15 días de salario base + prima del 30%
 FIN SI
 
-// 5. Cálculo del Salario Nominal Devengado
-Salario_Nominal_Devengado <- Salario_Base + Monto_Horas_Extra - Descuento_Ausencias + Aguinaldo + Vacaciones
+// 5. Evaluación de prestación extraordinaria: Quincena Veinticinco (Decreto No. 499)
+Quincena_Veinticinco <- CalcularQuincenaVeinticinco(Salario_Base, Fecha_Calculo, Fecha_Ingreso, Es_Voluntario_Aceptado, Es_Sector_Publico, Es_Finiquito)
 
-// Lógica de exención de Aguinaldo de acuerdo a la ley de El Salvador (Art. 144 C.T. y Ley SAP)
-// El aguinaldo ordinario no cotiza seguridad social ni renta
-Salario_Cotizable_Seguridad_Social <- Salario_Nominal_Devengado - Aguinaldo
+// 6. Cálculo del Salario Nominal Devengado
+Salario_Nominal_Devengado <- Salario_Base + Monto_Horas_Extra - Descuento_Ausencias + Aguinaldo + Vacaciones + Quincena_Veinticinco
 
-// 6. Cálculo de Retenciones de Ley
+// Lógica de exención de Aguinaldo y Quincena Veinticinco de acuerdo a la ley de El Salvador
+// Ambas prestaciones no cotizan seguridad social ni renta
+Salario_Cotizable_Seguridad_Social <- Salario_Nominal_Devengado - Aguinaldo - Quincena_Veinticinco
+
+// 7. Cálculo de Retenciones de Ley
 Base_Cotizable_ISSS <- MIN(Salario_Cotizable_Seguridad_Social, 1000.00)
 Retencion_ISSS <- Base_Cotizable_ISSS * 0.03
 
 Base_Cotizable_AFP <- MIN(Salario_Cotizable_Seguridad_Social, 7028.29) // Techo AFP vigente
 Retencion_AFP <- Base_Cotizable_AFP * 0.0725
 
-// 7. Cálculo del Salario Gravado para Renta (excluye el aguinaldo)
+// 8. Cálculo del Salario Gravado para Renta (excluye aguinaldo y Quincena Veinticinco)
 Salario_Gravado <- Salario_Cotizable_Seguridad_Social - Retencion_ISSS - Retencion_AFP
 
-// 8. Cálculo de Impuesto sobre la Renta (ISR)
+// 9. Cálculo de Impuesto sobre la Renta (ISR)
 Retencion_Renta <- 0
 
 SI Salario_Gravado > 550.00 ENTONCES
@@ -144,20 +172,26 @@ SINO
     Retencion_Renta <- 0.00
 FIN SI
 
-// 9. Cálculo final y emisión de la Boleta
+// 10. Cálculo final y emisión de la Boleta
 Retenciones_Totales <- Retencion_ISSS + Retencion_AFP + Retencion_Renta
 Salario_Liquido_Pagar <- Salario_Nominal_Devengado - Retenciones_Totales
 
 GENERAR_Y_EMITIR "Boleta de Pago Individual con detalle de Salario Líquido: ", Salario_Liquido_Pagar
 
-// 10. Cálculo de Aportes Patronales (Provisiones contables de la Empresa)
+// 11. Cálculo de Aportes Patronales (Provisiones contables de la Empresa)
 Aporte_Patronal_ISSS <- Base_Cotizable_ISSS * 0.075
 Aporte_Patronal_AFP <- Base_Cotizable_AFP * 0.0875
 Aporte_Patronal_INCAF <- 0
 
 SI Total_Empleados_Empresa >= 10 ENTONCES
-    // El INCAF comparte el mismo techo de $1,000 que el ISSS
-    Aporte_Patronal_INCAF <- Base_Cotizable_ISSS * 0.01
+    // El INCAF comparte el mismo techo de $1,000 que el ISSS y evalúa la tasa según sector
+    SI Es_Agropecuario == VERDADERO ENTONCES
+        SI Es_Temporal_Agricola == FALSO ENTONCES
+            Aporte_Patronal_INCAF <- Base_Cotizable_ISSS * 0.0025
+        FIN SI
+    SINO
+        Aporte_Patronal_INCAF <- Base_Cotizable_ISSS * 0.01
+    FIN SI
 FIN SI
 
 GUARDAR_PROVISIONES Aporte_Patronal_ISSS, Aporte_Patronal_AFP, Aporte_Patronal_INCAF
@@ -165,4 +199,4 @@ GUARDAR_PROVISIONES Aporte_Patronal_ISSS, Aporte_Patronal_AFP, Aporte_Patronal_I
 FIN
 
 > [!NOTE]
-> **Nota de actualización:** Se corrigieron las fórmulas del algoritmo para eximir el Aguinaldo de los cálculos de cotizaciones previsionales (AFP), seguro de salud (ISSS) e Impuesto sobre la Renta (ISR) a fin de respetar la legislación de El Salvador. También se ajustó el techo cotizable de AFP a $7,028.29 y se integró la condición de obligatoriedad del INCAF basada en una nómina de diez o más trabajadores.
+> **Nota de actualización:** Se corrigieron las fórmulas del algoritmo para eximir el Aguinaldo y la Quincena Veinticinco de los cálculos de cotizaciones previsionales (AFP), seguro de salud (ISSS) e Impuesto sobre la Renta (ISR) a fin de respetar la legislación de El Salvador. También se ajustó el techo cotizable de AFP a $7,028.29, se introdujo el cálculo exento de la Quincena Veinticinco y se integró la condición de obligatoriedad y tasas especiales de INCAF basadas en el sector agropecuario y la nómina de diez o más trabajadores.

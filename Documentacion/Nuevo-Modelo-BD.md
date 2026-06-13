@@ -82,12 +82,14 @@ CREATE TABLE boletas_pago (
    afp_empleado DECIMAL(10, 2) NOT NULL,
    renta DECIMAL(10, 2) NOT NULL,
    descuento_ausencias DECIMAL(10, 2) DEFAULT 0.00,
+   -- Prestaciones Economicas Extraordinarias (Exenta de ISSS/AFP/Renta)
+   quincena_veinticinco DECIMAL(10, 2) DEFAULT 0.00,
    -- Total a pagar
    salario_neto DECIMAL(10, 2) NOT NULL,
    -- Costeo Patronal (Obligaciones de la empresa)
    isss_patrono DECIMAL(10, 2) NOT NULL,
    afp_patrono DECIMAL(10, 2) NOT NULL,
-   insaforp_patrono DECIMAL(10, 2) NOT NULL,
+   incaf_patrono DECIMAL(10, 2) NOT NULL,
    FOREIGN KEY (id_planilla) REFERENCES planillas(id),
    FOREIGN KEY (id_empleado) REFERENCES empleados(id),
    UNIQUE(id_planilla, id_empleado) -- Un empleado tiene solo una boleta por planilla
@@ -106,7 +108,7 @@ Para la implementación de los cálculos en el código, se deben considerar las 
 | :--- | :--- | :--- |
 | **ISSS** | 3.00% | 7.50% |
 | **AFP** | 7.25% | 8.75% |
-| **INSAFORP** | N/A | 1.00% |
+| **INCAF** | N/A | 1.00% (0.25% en Agropecuario) |
 | **Renta** | Según Tabla de Retención (Tramos) | N/A |
 
 ## 5. Estrategia de Migración (Base Vieja -> Nuevo Modelo)

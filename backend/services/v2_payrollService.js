@@ -109,16 +109,22 @@ class V2_PayrollService {
   }
 
   /**
-   * Calcula el aporte patronal de INCAF (antes INSAFORP).
-   * INCAF Patrono: 1.00%
+   * Calcula el aporte patronal de INCAF (antes INSAFORP) (Decreto N.° 893).
+   * Tasa General: 1.00%, Tasa Sector Agropecuario: 0.25% (exento para temporales agrícolas).
    * Límite de cotización (techo) para INCAF mensual (igual a ISSS): $1,000.00
    * @param {number} salarioDevengado Salario devengado cotizable.
+   * @param {boolean} esSectorAgropecuario Flag para indicar sector agropecuario.
+   * @param {boolean} esTemporalAgricola Flag para indicar si es trabajador temporal agrícola.
    * @returns {number} Monto correspondiente a INCAF patronal.
    */
-  static calcularINCAF(salarioDevengado) {
+  static calcularINCAF(salarioDevengado, esSectorAgropecuario = false, esTemporalAgricola = false) {
+    if (esSectorAgropecuario && esTemporalAgricola) {
+      return 0.00;
+    }
     const techoINCAF = 1000.00;
     const salarioCotizable = Math.min(salarioDevengado, techoINCAF);
-    const incafPatrono = salarioCotizable * 0.0100;
+    const tasa = esSectorAgropecuario ? 0.0025 : 0.0100;
+    const incafPatrono = salarioCotizable * tasa;
 
     return Math.round(incafPatrono * 100) / 100;
   }
@@ -249,16 +255,94 @@ class V2_PayrollService {
   }
 
   /**
-   * Realiza el desglose completo de nómina y costeo patronal para generar una boleta de pago.
-   * @param {number} salarioBase Salario mensual base según cargo del empleado.
+   * Calcula la prestacion economica de la "Quincena Veinticinco" (Decreto No. 499).
+   * Solo aplica para empleados con salario nominal <= $1,500.00 USD.
+   * Monto completo: 50% del salario nominal.
+   * No esta sujeto a AFP, ISSS, ISR (Renta), ni embargos.
+   * Se paga entre el 15 y el 25 de enero de cada año (para 2026 es voluntario en sector privado, obligatorio desde 2027; sector publico obligatorio desde 2026).
+   * En finiquitos por despido injustificado antes del 25 de enero, se paga la parte proporcional.
+   * @param {number} salarioBase Salario mensual base del empleado.
+   * @param {Date|string} fechaCalculo Fecha de procesamiento o calculo.
+   * @param {Date|string} fechaIngreso Fecha de ingreso del empleado.
+   * @param {boolean} esVoluntarioAceptado Flag para indicar si la empresa acepta el pago voluntario en 2026.
+   * @param {boolean} esSectorPublico Flag para indicar si la empresa pertenece al sector publico/municipal.
+   * @param {boolean} esFiniquito Flag para indicar si el calculo es parte de una liquidacion.
+   * @returns {number} Monto correspondiente.
+   */
+  static calcularQuincenaVeinticinco(
+    salarioBase,
+    fechaCalculo,
+    fechaIngreso,
+    esVoluntarioAceptado = true,
+    esSectorPublico = false,
+    esFiniquito = false
+  ) {
+    if (salarioBase > 1500.00) {
+      return 0.00;
+    }
+
+    const fCalculo = parseFechaSinTimezone(fechaCalculo);
+    const fIngreso = parseFechaSinTimezone(fechaIngreso);
+    const anio = fCalculo.getFullYear();
+    const mes = fCalculo.getMonth(); // 0 = Enero
+    const dia = fCalculo.getDate();
+
+    if (anio < 2026) {
+      return 0.00;
+    }
+
+    // Evaluar vigencia
+    if (anio === 2026 && !esSectorPublico && !esVoluntarioAceptado) {
+      return 0.00;
+    }
+
+    // Monto completo (50% del salario base)
+    const montoCompleto = salarioBase * 0.50;
+
+    // Calculo ordinario: debe cobrarse en enero entre el 15 y el 25
+    if (!esFiniquito) {
+      if (mes === 0 && dia >= 15 && dia <= 25) {
+        return Math.round(montoCompleto * 100) / 100;
+      }
+      return 0.00;
+    }
+
+    // Si es finiquito/liquidacion y ocurre antes del 25 de enero (dentro del mes de enero)
+    if (esFiniquito && mes === 0 && dia < 25) {
+      const diffTime = fCalculo.getTime() - fIngreso.getTime();
+      if (diffTime < 0) return 0.00;
+      const diasAntiguedad = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diasAntiguedad < 365) {
+        // Proporcional a los dias de antiguedad si es menor de 1 ano
+        const montoProporcional = (diasAntiguedad / 365.0) * montoCompleto;
+        return Math.round(montoProporcional * 100) / 100;
+      } else {
+        // Proporcional a los dias laborados en el ano actual (desde el 1 de enero al despido)
+        const inicioAnio = new Date(anio, 0, 1);
+        const diasTrabajadosEnAnio = Math.round((fCalculo.getTime() - inicioAnio.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const montoProporcional = (diasTrabajadosEnAnio / 365.0) * montoCompleto;
+        return Math.round(montoProporcional * 100) / 100;
+      }
+    }
+
+    return 0.00;
+  }
+
+  /**
+   * Realiza el desglose completo de nomina y costeo patronal para generar una boleta de pago.
+   * @param {number} salarioBase Salario mensual base segun cargo del empleado.
    * @param {Array} ausencias Lista de ausencias de este empleado.
    * @param {number} beneficios Beneficios adicionales (bonos, comisiones, etc.).
-   * @param {number} aguinaldo Aguinaldo pagado en el período (opcional, exento de ISSS/AFP por ley).
-   * @param {number} vacaciones Pago de vacaciones en el período (opcional, cotizable).
-   * @param {string} tipoPeriodo Tipo de período de la planilla ('MENSUAL' o 'QUINCENAL').
-   * @param {Date|string} fechaInicio Fecha de inicio del período de planilla.
-   * @param {Date|string} fechaFin Fecha de fin del período de planilla.
+   * @param {number} aguinaldo Aguinaldo pagado en el periodo (opcional, exento de ISSS/AFP por ley).
+   * @param {number} vacaciones Pago de vacaciones en el periodo (opcional, cotizable).
+   * @param {string} tipoPeriodo Tipo de periodo de la planilla ('MENSUAL' o 'QUINCENAL').
+   * @param {Date|string} fechaInicio Fecha de inicio del periodo de planilla.
+   * @param {Date|string} fechaFin Fecha de fin del periodo de planilla.
    * @param {number} totalEmpleadosEmpresa Cantidad total de empleados en la empresa (para validar INCAF).
+   * @param {number} quincenaVeinticinco Monto de la Quincena Veinticinco pagado en el periodo (opcional, exento de ISSS/AFP/Renta).
+   * @param {boolean} esSectorAgropecuario Flag para indicar sector agropecuario.
+   * @param {boolean} esTemporalAgricola Flag para indicar si es trabajador temporal agricola.
    * @returns {Object} Desglose completo de la boleta de pago.
    */
   static calcularBoletaPago(
@@ -270,7 +354,10 @@ class V2_PayrollService {
     tipoPeriodo = 'MENSUAL',
     fechaInicio,
     fechaFin,
-    totalEmpleadosEmpresa = 10
+    totalEmpleadosEmpresa = 10,
+    quincenaVeinticinco = 0.0,
+    esSectorAgropecuario = false,
+    esTemporalAgricola = false
   ) {
     const periodo = tipoPeriodo.toUpperCase();
     
@@ -281,33 +368,33 @@ class V2_PayrollService {
     // Calcular ausencias
     const { diasAusencia, descuento } = this.calcularDescuentoAusencias(salarioBase, ausencias, fechaInicio, fechaFin);
 
-    // Salario Nominal Devengado (sumando beneficios, vacaciones, aguinaldo y restando ausencias)
-    const salarioDevengado = Math.max(0.00, salarioBasePeriodo + beneficios + vacaciones + aguinaldo - descuento);
+    // Salario Nominal Devengado (sumando beneficios, vacaciones, aguinaldo, quincena veinticinco y restando ausencias)
+    const salarioDevengado = Math.max(0.00, salarioBasePeriodo + beneficios + vacaciones + aguinaldo + quincenaVeinticinco - descuento);
 
-    // Para efectos de ISSS y AFP, por ley de El Salvador el Aguinaldo ordinario está exento de cotizaciones.
-    // Calculamos el salario cotizable restando el aguinaldo:
-    const salarioCotizableSeguridadSocial = Math.max(0.00, salarioDevengado - aguinaldo);
+    // Para efectos de ISSS y AFP, por ley de El Salvador el Aguinaldo ordinario y la Quincena Veinticinco estan exentos de cotizaciones.
+    // Calculamos el salario cotizable restando ambos del devengado:
+    const salarioCotizableSeguridadSocial = Math.max(0.00, salarioDevengado - aguinaldo - quincenaVeinticinco);
 
     // Deducciones empleado y aportes patronales basadas en el salario cotizable de seguridad social
     const afp = this.calcularAFP(salarioCotizableSeguridadSocial);
     const isss = this.calcularISSS(salarioCotizableSeguridadSocial);
     
-    // El aporte de INCAF (1%) aplica solo si la empresa tiene 10 o más empleados.
+    // El aporte de INCAF (1% o 0.25% segun corresponda) aplica solo si la empresa tiene 10 o mas empleados.
     // Comparte el techo de $1,000.00 del ISSS.
     let incafPatrono = 0.00;
     if (totalEmpleadosEmpresa >= 10) {
-      incafPatrono = this.calcularINCAF(salarioCotizableSeguridadSocial);
+      incafPatrono = this.calcularINCAF(salarioCotizableSeguridadSocial, esSectorAgropecuario, esTemporalAgricola);
     }
 
-    // Retención de Renta (ISR 2025)
-    // Dado que el aguinaldo ordinario está exento por ley de El Salvador, calculamos el ISR sobre la renta gravada sin aguinaldo:
-    const salarioParaRenta = Math.max(0.00, salarioDevengado - aguinaldo);
+    // Retencion de Renta (ISR 2025)
+    // Dado que el aguinaldo ordinario y la quincena veinticinco estan exentos por ley de El Salvador, calculamos el ISR sobre la renta gravada sin ellos:
+    const salarioParaRenta = Math.max(0.00, salarioDevengado - aguinaldo - quincenaVeinticinco);
     const renta = this.calcularISR(salarioParaRenta, afp.empleado, isss.empleado, periodo);
 
-    // Salario Neto (Líquido a recibir)
+    // Salario Neto (Liquido a recibir)
     const salarioNeto = salarioDevengado - isss.empleado - afp.empleado - renta;
 
-    // Calcular días trabajados proporcionales
+    // Calcular dias trabajados proporcionales
     const diasMaximosPeriodo = periodo === 'QUINCENAL' ? 15 : 30;
     const diasTrabajados = Math.max(0, diasMaximosPeriodo - diasAusencia);
 
@@ -321,7 +408,9 @@ class V2_PayrollService {
       salario_neto: Math.round(salarioNeto * 100) / 100,
       isss_patrono: isss.patrono,
       afp_patrono: afp.patrono,
-      insaforp_patrono: incafPatrono // Mantiene el nombre de columna de BD 'insaforp_patrono' para compatibilidad
+      incaf_patrono: incafPatrono, // Campo oficial segun Decreto N.° 893
+      insaforp_patrono: incafPatrono, // Mantiene el nombre de columna de BD 'insaforp_patrono' para compatibilidad retroactiva
+      quincena_veinticinco: Math.round(quincenaVeinticinco * 100) / 100
     };
   }
 }
