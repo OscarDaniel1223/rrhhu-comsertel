@@ -46,7 +46,7 @@ export default function Navbar({ activeItem, handleItemClick }) {
     <>
       {/* Botón hamburguesa visible solo en móviles */}
       <button
-        className="lg:hidden fixed top-4 right-4 z-[1051] p-2 bg-white dark:bg-slate-800 rounded-md shadow-md text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+        className="lg:hidden fixed top-4 right-4 z-[1051] p-2 bg-white dark:bg-slate-800 rounded-md shadow-md text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors print:hidden"
         onClick={() => setShowMenu(true)}
       >
         <i className="bi bi-list text-2xl"></i>
@@ -55,14 +55,14 @@ export default function Navbar({ activeItem, handleItemClick }) {
       {/* Overlay oscuro en móviles */}
       {showMenu && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-[1039] lg:hidden" 
+          className="fixed inset-0 bg-slate-900/50 z-[1039] lg:hidden print:hidden" 
           onClick={() => setShowMenu(false)}
         ></div>
       )}
 
       {/* Sidebar / Offcanvas */}
       <div
-        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[1040] transform transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none lg:translate-x-0 ${showMenu ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[1040] transform transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none lg:translate-x-0 print:hidden ${showMenu ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between p-4 lg:hidden border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
           <h5 className="font-semibold text-slate-800 dark:text-white m-0">Menú</h5>

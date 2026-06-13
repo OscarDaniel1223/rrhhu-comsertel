@@ -39,13 +39,15 @@ export default function Dashboard() {
 
         <div
           id="content"
-          className="flex-1 flex flex-col lg:pl-64 overflow-auto"
+          className="flex-1 flex flex-col lg:pl-64 print:pl-0 overflow-auto"
         >
           <div className="flex-1">
             {content}
           </div>
           {/* Footer dentro del área de contenido para alineación perfecta */}
-          <Footer />
+          <div className="print:hidden">
+            <Footer />
+          </div>
         </div>
 
       </div>

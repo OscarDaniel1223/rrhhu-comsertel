@@ -189,3 +189,143 @@ Esta documentación cubre los endpoints creados para la gestión de Departamento
 ### 5. Eliminar un registro de ausencia o incapacidad
 - **Endpoint:** `DELETE /api/ausencias-incapacidades/:id`
 - **Respuesta Exitosa:** `200 OK`
+
+---
+
+## Planillas (planillas) y Boletas de Pago (boletas_pago)
+
+### 1. Obtener todas las planillas
+- **Endpoint:** `GET /api/planillas`
+- **Descripción:** Retorna el listado completo de planillas registradas, ordenadas por fecha de creación descendente.
+- **Respuesta Exitosa:** `200 OK`
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "fecha_inicio": "2026-06-01",
+      "fecha_fin": "2026-06-15",
+      "tipo_periodo": "QUINCENAL",
+      "estado": "BORRADOR",
+      "creado_en": "2026-06-13T16:00:00.000Z"
+    }
+  ],
+  "message": "Planillas obtenidas exitosamente"
+}
+```
+
+### 2. Obtener detalle de planilla por ID (Consolidado y Boletas)
+- **Endpoint:** `GET /api/planillas/:id`
+- **Descripción:** Retorna la información de la planilla, un resumen consolidado de costos (costeo patronal y retenciones agregadas) y el listado de las boletas de pago generadas para cada empleado.
+- **Respuesta Exitosa:** `200 OK`
+```json
+{
+  "status": "success",
+  "data": {
+    "planilla": {
+      "id": 1,
+      "fecha_inicio": "2026-06-01",
+      "fecha_fin": "2026-06-15",
+      "tipo_periodo": "QUINCENAL",
+      "estado": "BORRADOR",
+      "creado_en": "2026-06-13T16:00:00.000Z"
+    },
+    "resumen": {
+      "total_salarios_devengados": 1200.50,
+      "total_isss_empleado": 30.00,
+      "total_afp_empleado": 87.04,
+      "total_renta": 15.00,
+      "total_salarios_netos": 1068.46,
+      "total_isss_patrono": 75.00,
+      "total_afp_patrono": 105.04,
+      "total_insaforp_patrono": 10.00,
+      "total_aportes_patronales": 190.04,
+      "total_costo_patronal": 1390.54,
+      "total_beneficios": 50.00,
+      "total_vacaciones": 0.00,
+      "total_aguinaldo": 0.00,
+      "total_quincena_veinticinco": 0.00
+    },
+    "boletas": [
+      {
+        "id": 1,
+        "id_planilla": 1,
+        "id_empleado": 3,
+        "dias_trabajados": 15,
+        "salario_devengado": "600.00",
+        "isss_empleado": "18.00",
+        "afp_empleado": "43.50",
+        "renta": "0.00",
+        "salario_neto": "538.50",
+        "isss_patrono": "45.00",
+        "afp_patrono": "52.50",
+        "insaforp_patrono": "6.00",
+        "beneficios": "0.00",
+        "vacaciones": "0.00",
+        "aguinaldo": "0.00",
+        "quincena_veinticinco": "0.00",
+        "nombres": "Juan Carlos",
+        "apellidos": "Perez Gomez",
+        "dui": "01234567-8",
+        "nit": "0614-101090-101-1",
+        "cargo": "Técnico Instalador",
+        "salario_base": "1200.00"
+      }
+    ]
+  },
+  "message": "Detalle de planilla obtenido exitosamente"
+}
+```
+
+### 3. Generar Planilla
+- **Endpoint:** `POST /api/planillas`
+- **Descripción:** Crea un registro de planilla e inicia el procesamiento y cálculo de nómina masivo de todos los empleados en estado ACTIVO para el rango de fechas y período configurado. Registra las deducciones previsionales (AFP, ISSS, Renta 2025) y los aportes patronales (ISSS 7.5%, AFP 8.75%, INCAF 1%), guardando la información en boletas_pago. Permite pasar un arreglo opcional de novedades (beneficios o vacaciones) por empleado.
+- **Body:**
+```json
+{
+  "fecha_inicio": "2026-06-01",
+  "fecha_fin": "2026-06-15",
+  "tipo_periodo": "QUINCENAL",
+  "novedades": [
+    {
+      "id_empleado": 3,
+      "beneficios": 50.00,
+      "vacaciones": 0.00
+    }
+  ]
+}
+```
+- **Respuesta Exitosa:** `201 Created`
+```json
+{
+  "status": "success",
+  "data": {
+    "id_planilla": 1,
+    "boletas_generadas": 10
+  },
+  "message": "Planilla generada y procesada exitosamente."
+}
+```
+
+### 4. Cerrar Planilla
+- **Endpoint:** `PUT /api/planillas/:id/cerrar`
+- **Descripción:** Modifica el estado de la planilla seleccionada a CERRADA. Una planilla cerrada es definitiva y no puede ser recalculada o eliminada.
+- **Respuesta Exitosa:** `200 OK`
+```json
+{
+  "status": "success",
+  "message": "Planilla cerrada exitosamente"
+}
+```
+
+### 5. Eliminar Planilla
+- **Endpoint:** `DELETE /api/planillas/:id`
+- **Descripción:** Elimina una planilla y todas sus boletas de pago asociadas (en cascada). Solo es permitido para planillas en estado BORRADOR.
+- **Respuesta Exitosa:** `200 OK`
+```json
+{
+  "status": "success",
+  "message": "Planilla y boletas de pago asociadas eliminadas exitosamente"
+}
+```

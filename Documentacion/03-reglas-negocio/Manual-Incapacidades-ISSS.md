@@ -40,8 +40,11 @@ El Administrador de Recursos Humanos tiene la facultad de revisar y validar cada
 1.  En la pantalla de **Gestión Operativa**, se visualizan las solicitudes en estado `PENDIENTE`.
 2.  El encargado debe contrastar los datos contra los justificantes físicos o digitales entregados por el colaborador.
 3.  Seleccionar la opción de **Aprobar** o **Rechazar** la incidencia.
-    *   Al **Aprobar** una `AUSENCIA_INJUSTIFICADA`, el motor de cálculo de nómina aplicará la deducción proporcional de días en la siguiente planilla del período en que traslape.
-    *   Al **Aprobar** una `INCAPACIDAD_ISSS`, el sistema marca el periodo como justificado por enfermedad, eximiéndolo de descuentos salariales por inasistencia ordinaria y permitiendo el reporte correcto ante el ISSS.
+    *   **AUSENCIA_INJUSTIFICADA:**
+        *   **Aprobar:** Significa confirmar y validar que la falta es real y que no tiene justificación. Al aprobarla, el administrador de Recursos Humanos autoriza formalmente al motor de cálculo de nómina para que proceda a aplicar el descuento salarial correspondiente a los días no laborados en la planilla del período en que traslape.
+        *   **Rechazar:** Significa anular el registro de la falta o desestimarla. Esto ocurre si el reporte inicial fue un error (por ejemplo, una falla en el reloj marcador de asistencia) o si el empleado presentó después una justificación válida (en cuyo caso se debe rechazar o modificar la incidencia para que no se le descuente su salario).
+    *   **INCAPACIDAD_ISSS / PERMISO_GOCE:**
+        *   Al **Aprobar** la incidencia, el sistema marca el período como justificado, eximiendo al colaborador de descuentos salariales por inasistencia ordinaria y, en caso de incapacidad, permitiendo el reporte correcto del subsidio ante el ISSS.
 
 ---
 

@@ -38,8 +38,8 @@ Este documento organiza el trabajo para el grupo de 5 estudiantes.
 ## Sprint 4: Gran Final - Planilla y Boletas (1 Semana)
 **Objetivo:** Procesamiento de planillas por periodo, costeo patronal y generación de boletas individuales.
 
-- **Tarea 1 (Backend):** Desarrollar el endpoint para "Generar Planilla" que procese los cálculos de todos los empleados activos, registre los aportes patronales (ISSS 7.5%, AFP 8.75%, INSAFORP 1%) y guarde la información consolidada en `boletas_pago`. (Dev 1)
-- **Tarea 2 (Frontend):** Diseñar e implementar la vista de "Boleta de Pago" individual optimizada para impresión, mostrando días trabajados, salario devengado, desglose de descuentos de ley, total neto a pagar y aportes patronales. (Dev 2)
-- **Tarea 3 (Frontend):** Crear la interfaz para gestionar los encabezados de las Planillas, cubriendo periodos quincenales y mensuales, y permitiendo controlar los estados de planilla (Borrador / Cerrada). (Dev 2 o Dev 3)
-- **Tarea 4 (Frontend):** Desarrollar el Dashboard consolidado con el resumen de costos patronales totales del periodo. (Dev 3)
-- **Tarea 5 (QA/Entrega):** Realizar pruebas de punta a punta (E2E), verificar la consistencia de los cálculos con datos reales y llevar a cabo la limpieza final de archivos y dependencias obsoletas. (Todo el grupo)
+- [x] **Tarea 1 (Backend):** Desarrollar el endpoint para "Generar Planilla" que procese los cálculos de todos los empleados activos, registre los aportes patronales (ISSS 7.5%, AFP 8.75%, INCAF 1%) y guarde la información consolidada en `boletas_pago`. (Completado)
+- [x] **Tarea 2 (Frontend):** Diseñar e implementar la vista de "Boleta de Pago" individual optimizada para impresión, mostrando días trabajados, salario devengado, desglose de descuentos de ley, total neto a pagar y aportes patronales. (Completado)
+- [x] **Tarea 3 (Frontend):** Crear la interfaz para gestionar los encabezados de las Planillas, cubriendo periodos quincenales y mensuales, y permitiendo controlar los estados de planilla (Borrador / Cerrada). (Completado)
+- [ ] **Tarea 4 (Frontend):** Desarrollar el Dashboard consolidado con el resumen de costos patronales totales del periodo. (Pendiente - Dev 3)
+- [ ] **Tarea 5 (QA/Entrega):** Realizar pruebas de punta a punta (E2E), verificar la consistencia de los cálculos con datos reales y llevar a cabo la limpieza final de archivos y dependencias obsoletas. (Pendiente - Todo el grupo)
