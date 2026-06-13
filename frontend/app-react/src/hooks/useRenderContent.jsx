@@ -2,6 +2,8 @@ import Home from "../components/contents/Home";
 import Products from "../components/contents/Products";
 import Users from "../components/contents/Users";
 import V2_ContenedorEmpleado from "../components/V2_ContenedorEmpleado";
+import V2_ContenedorAusencia from "../components/V2_ContenedorAusencia";
+import V2_GestionAusencias from "../components/V2_GestionAusencias";
 import { menuItems } from "../services/menuConfig";
 import { useAuth } from "../providers/AuthContext";
 
@@ -39,6 +41,12 @@ export default function useRenderContent(activeItem) {
       break;
     case "employees":
       content = <V2_ContenedorEmpleado />;
+      break;
+    case "absences":
+      content = <V2_ContenedorAusencia />;
+      break;
+    case "absences_approval":
+      content = <V2_GestionAusencias />;
       break;
 
     default:

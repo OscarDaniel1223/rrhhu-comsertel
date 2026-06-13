@@ -11,6 +11,7 @@ const usuariosRoutes = require('./routes/usuarios');
 const v2_departamentosRoutes = require('./routes/v2_departamentos');
 const v2_cargosRoutes = require('./routes/v2_cargos');
 const v2_empleadosRoutes = require('./routes/v2_empleados');
+const v2_ausenciasIncapacidadesRoutes = require('./routes/v2_ausenciasIncapacidades');
 const app = express();
 
 const PORT = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ app.use('/api', usuariosRoutes);
 app.use('/api', v2_departamentosRoutes);
 app.use('/api', v2_cargosRoutes);
 app.use('/api', v2_empleadosRoutes);
+app.use('/api', v2_ausenciasIncapacidadesRoutes);
 
 
 

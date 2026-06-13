@@ -125,3 +125,67 @@ Esta documentación cubre los endpoints creados para la gestión de Departamento
 - **Endpoint:** `DELETE /api/cargos/:id`
 - **Descripción:** Elimina un cargo (fallará si tiene empleados asignados).
 - **Respuesta Exitosa:** `200 OK`
+
+---
+
+## Ausencias e Incapacidades (`ausencias_incapacidades`)
+
+### 1. Obtener todas las ausencias e incapacidades
+- **Endpoint:** `GET /api/ausencias-incapacidades`
+- **Descripción:** Retorna la lista completa de ausencias e incapacidades con los datos básicos del empleado. Soporta un parámetro de consulta opcional `id_empleado` para filtrar por empleado.
+- **Respuesta Exitosa:** `200 OK`
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "id_empleado": 3,
+      "tipo": "INCAPACIDAD_ISSS",
+      "fecha_inicio": "2026-06-10",
+      "fecha_fin": "2026-06-12",
+      "motivo": "Reposo por salud",
+      "estado": "APROBADA",
+      "empleado_nombres": "Juan Carlos",
+      "empleado_apellidos": "Perez Gomez",
+      "empleado_dui": "01234567-8"
+    }
+  ],
+  "message": "Ausencias e incapacidades obtenidas exitosamente"
+}
+```
+
+### 2. Obtener una ausencia o incapacidad por ID
+- **Endpoint:** `GET /api/ausencias-incapacidades/:id`
+- **Respuesta Exitosa:** `200 OK`
+
+### 3. Registrar una ausencia o incapacidad
+- **Endpoint:** `POST /api/ausencias-incapacidades`
+- **Body:**
+```json
+{
+  "id_empleado": 3,
+  "tipo": "AUSENCIA_INJUSTIFICADA",
+  "fecha_inicio": "2026-06-15",
+  "fecha_fin": "2026-06-15",
+  "motivo": "Inasistencia sin justificacion",
+  "estado": "PENDIENTE"
+}
+```
+- **Respuesta Exitosa:** `201 Created`
+```json
+{
+  "status": "success",
+  "data": { "id": 4 },
+  "message": "Ausencia o incapacidad registrada exitosamente"
+}
+```
+
+### 4. Actualizar una ausencia o incapacidad
+- **Endpoint:** `PUT /api/ausencias-incapacidades/:id`
+- **Body:** Todos los campos son obligatorios para actualizar.
+- **Respuesta Exitosa:** `200 OK`
+
+### 5. Eliminar un registro de ausencia o incapacidad
+- **Endpoint:** `DELETE /api/ausencias-incapacidades/:id`
+- **Respuesta Exitosa:** `200 OK`
