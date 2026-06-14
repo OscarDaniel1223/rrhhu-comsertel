@@ -17,7 +17,7 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
   useEffect(() => {
     if (selectedIncidencia) {
       setFormData({
-        id_empleado: selectedIncidencia.id_empleado || '',
+        id_empleado: selectedIncidencia.id_empleado ? String(selectedIncidencia.id_empleado) : '',
         tipo: selectedIncidencia.tipo || 'AUSENCIA_INJUSTIFICADA',
         fecha_inicio: selectedIncidencia.fecha_inicio ? selectedIncidencia.fecha_inicio.substring(0, 10) : '',
         fecha_fin: selectedIncidencia.fecha_fin ? selectedIncidencia.fecha_fin.substring(0, 10) : '',
@@ -42,7 +42,17 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
         const response = await getEmpleados();
         if (response.status === 'success') {
           // Filtrar solo empleados activos para registros nuevos
-          const activos = response.data.filter(emp => emp.estado === 'ACTIVO');
+          const todos = response.data;
+          const activos = todos.filter(emp => emp.estado === 'ACTIVO');
+          
+          // Si estamos editando y el empleado seleccionado está inactivo, lo agregamos a la lista
+          if (selectedIncidencia && selectedIncidencia.id_empleado) {
+            const empSeleccionado = todos.find(emp => String(emp.id) === String(selectedIncidencia.id_empleado));
+            if (empSeleccionado && !activos.some(emp => String(emp.id) === String(empSeleccionado.id))) {
+              activos.push(empSeleccionado);
+            }
+          }
+          
           setEmpleados(activos);
         }
       } catch (error) {
@@ -55,7 +65,7 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
       }
     };
     fetchEmpleados();
-  }, []);
+  }, [selectedIncidencia]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -150,7 +160,7 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
           >
             <option value="">Seleccione un colaborador...</option>
             {empleados.map(emp => (
-              <option key={emp.id} value={emp.id}>
+              <option key={emp.id} value={String(emp.id)}>
                 {emp.nombres} {emp.apellidos} ({emp.dui})
               </option>
             ))}

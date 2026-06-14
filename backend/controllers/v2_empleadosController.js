@@ -190,7 +190,7 @@ exports.updateEmpleado = async (req, res) => {
 exports.deleteEmpleado = async (req, res) => {
     try {
         const { id } = req.params;
-        const [result] = await db.query('DELETE FROM empleados WHERE id = ?', [id]);
+        const [result] = await db.query("UPDATE empleados SET estado = 'INACTIVO' WHERE id = ?", [id]);
         
         if (result.affectedRows === 0) {
             return res.status(404).json({
@@ -202,7 +202,7 @@ exports.deleteEmpleado = async (req, res) => {
         res.json({
             status: 'success',
             data: { id },
-            message: 'Empleado eliminado exitosamente'
+            message: 'Empleado dado de baja exitosamente'
         });
     } catch (error) {
         console.error(error);

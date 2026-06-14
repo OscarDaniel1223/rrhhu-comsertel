@@ -1,7 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Swal from 'sweetalert2';
 import { getPlanillas, getPlanillaById, generarPlanilla, cerrarPlanilla, deletePlanilla } from '../services/v2_planillaService';
 import { getEmpleados } from '../services/v2_empleadoService';
+
+/**
+ * Procesa una fecha para evitar el desfase horario y los problemas de Invalid Date
+ * cuando la fecha viene formateada como string ISO completo (con T y Z).
+ */
+const parseFechaLocal = (fechaInput) => {
+    if (!fechaInput) return null;
+    if (fechaInput instanceof Date) {
+        return new Date(fechaInput.getFullYear(), fechaInput.getMonth(), fechaInput.getDate());
+    }
+    let dateStr = fechaInput.toString();
+    if (dateStr.includes('T')) {
+        dateStr = dateStr.split('T')[0];
+    }
+    const date = new Date(dateStr + 'T00:00:00');
+    return isNaN(date.getTime()) ? null : date;
+};
+
+const formatFechaLocal = (fechaInput) => {
+    const date = parseFechaLocal(fechaInput);
+    if (!date) return 'Invalid Date';
+    return date.toLocaleDateString('es-SV');
+};
 
 /**
  * Formatear valores a moneda de El Salvador (USD)
@@ -25,12 +49,53 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
 
     const netoLetras = "Monto en Dolares de los Estados Unidos de America"; // Placeholder para evitar librerías complejas
 
-    return (
-        <div className="fixed inset-0 z-[1060] overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:inset-auto print:backdrop-blur-none">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none print:w-full print:h-full">
+    return createPortal(
+        <div className="boleta-print-modal fixed inset-0 z-[1060] overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:inset-auto print:backdrop-blur-none">
+            <style dangerouslySetInnerHTML={{__html: `
+                @media print {
+                    /* Ocultar la aplicacion React entera y otros overlays */
+                    #root, body > div:not(.boleta-print-modal) {
+                        display: none !important;
+                    }
+                    /* Limpiar body y html para la impresion */
+                    html, body {
+                        height: auto !important;
+                        min-height: 0 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: white !important;
+                        color: black !important;
+                    }
+                    /* Ajustar contenedor del modal de impresion */
+                    .boleta-print-modal {
+                        display: block !important;
+                        position: static !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .boleta-print-modal * {
+                        background: transparent !important;
+                        color: black !important;
+                        box-shadow: none !important;
+                        text-shadow: none !important;
+                    }
+                    .print-hidden {
+                        display: none !important;
+                    }
+                    @page {
+                        size: letter;
+                        margin: 10mm;
+                    }
+                }
+            `}} />
+            <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none print:w-full print:h-full print:p-0">
                 
                 {/* Cabecera del Modal (Oculta al imprimir) */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 print:hidden bg-slate-50 dark:bg-slate-900/50">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 print-hidden bg-slate-50 dark:bg-slate-900/50 print:hidden">
                     <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 m-0 text-lg">
                         <i className="bi bi-file-earmark-pdf text-blue-600"></i>
                         Boleta de Pago
@@ -54,7 +119,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
 
                 {/* Contenido Imprimible de la Boleta */}
                 <div className="p-8 overflow-y-auto print:overflow-visible print:p-0 flex-1 bg-white text-black dark:bg-slate-900 dark:text-white print:bg-white print:text-black">
-                    <div className="border-2 border-slate-300 p-6 rounded-xl space-y-6 print:border-slate-400 print:rounded-none">
+                    <div className="border-2 border-slate-300 p-6 rounded-xl space-y-6 print:border print:border-slate-400 print:p-4 print:space-y-4 print:rounded-none">
                         
                         {/* Membrete de la Empresa */}
                         <div className="text-center pb-4 border-b border-slate-200 print:border-slate-300">
@@ -67,12 +132,12 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                         <div className="text-center">
                             <h3 className="text-md font-bold uppercase text-slate-800 dark:text-slate-200 print:text-slate-800">Boleta de Pago Individual</h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                Período del {new Date(planilla.fecha_inicio + 'T00:00:00').toLocaleDateString('es-SV')} al {new Date(planilla.fecha_fin + 'T00:00:00').toLocaleDateString('es-SV')} ({planilla.tipo_periodo})
+                                Período del {formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)} ({planilla.tipo_periodo})
                             </p>
                         </div>
 
                         {/* Datos del Empleado */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-slate-50 dark:bg-slate-800/40 p-4 rounded-lg border border-slate-200 dark:border-slate-800 print:bg-white print:border-slate-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-2 text-sm bg-slate-50 dark:bg-slate-800/40 p-4 print:p-3 rounded-lg border border-slate-200 dark:border-slate-800 print:bg-white print:border-slate-300">
                             <div>
                                 <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Colaborador</span> {boleta.nombres} {boleta.apellidos}</p>
                                 <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Cargo</span> {boleta.cargo}</p>
@@ -86,14 +151,14 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                         </div>
 
                         {/* Detalle Financiero (Ingresos vs Deducciones) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 print:gap-4 items-start">
                             
                             {/* Ingresos / Devengados */}
                             <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
                                 <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
                                     Ingresos y Devengados
                                 </div>
-                                <div className="p-4 space-y-2 text-sm">
+                                <div className="p-4 print:p-3 space-y-2 print:space-y-1 text-sm">
                                     <div className="flex justify-between">
                                         <span className="text-slate-600 dark:text-slate-400">Salario Proporcional:</span>
                                         <span className="font-semibold">{formatMoneda(planilla.tipo_periodo === 'QUINCENAL' ? boleta.salario_base / 2.0 : boleta.salario_base)}</span>
@@ -134,7 +199,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                                 <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
                                     Descuentos y Deducciones de Ley
                                 </div>
-                                <div className="p-4 space-y-2 text-sm">
+                                <div className="p-4 print:p-3 space-y-2 print:space-y-1 text-sm">
                                     {Number(boleta.descuento_ausencias) > 0 && (
                                         <div className="flex justify-between">
                                             <span className="text-slate-600 dark:text-slate-400">Descuento Ausencias:</span>
@@ -149,20 +214,15 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                                         <span className="text-slate-600 dark:text-slate-400">Seguro Social ISSS (3.00%):</span>
                                         <span className="font-semibold text-red-600">-{formatMoneda(boleta.isss_empleado)}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">Impuesto sobre la Renta (ISR):</span>
-                                        <span className="font-semibold text-red-600">-{formatMoneda(boleta.renta)}</span>
-                                    </div>
+                                    {Number(boleta.renta_retencion) > 0 && (
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-600 dark:text-slate-400">Impuesto sobre la Renta (Retención):</span>
+                                            <span className="font-semibold text-red-600">-{formatMoneda(boleta.renta_retencion)}</span>
+                                        </div>
+                                    )}
                                     <div className="border-t border-slate-100 dark:border-slate-800 pt-2 flex justify-between font-bold text-slate-800 dark:text-white">
-                                        <span>Total Deducciones:</span>
-                                        <span>
-                                            {formatMoneda(
-                                                parseFloat(boleta.isss_empleado) +
-                                                parseFloat(boleta.afp_empleado) +
-                                                parseFloat(boleta.renta) +
-                                                (parseFloat(boleta.descuento_ausencias) || 0.0)
-                                            )}
-                                        </span>
+                                        <span>Total Retenciones:</span>
+                                        <span>{formatMoneda(boleta.total_retenciones)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -170,7 +230,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                         </div>
 
                         {/* Neto a Recibir Líquido */}
-                        <div className="flex flex-col md:flex-row items-center justify-between p-5 bg-blue-50/70 border border-blue-100 rounded-lg text-blue-900 dark:bg-slate-800/80 dark:border-slate-700/80 dark:text-white print:bg-white print:border-slate-300">
+                        <div className="flex flex-col md:flex-row print:flex-row items-center print:justify-between p-5 print:p-3 bg-blue-50/70 border border-blue-100 rounded-lg text-blue-900 dark:bg-slate-800/80 dark:border-slate-700/80 dark:text-white print:bg-white print:border-slate-300">
                             <div>
                                 <span className="font-bold text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 block">Líquido a Recibir</span>
                                 <span className="text-3xl font-mono font-bold tracking-tight">{formatMoneda(boleta.salario_neto)}</span>
@@ -185,7 +245,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                             <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
                                 Información de Aportes Patronales (Costeo Empresa)
                             </div>
-                            <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div className="p-4 print:p-3 grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-4 print:gap-2 text-xs">
                                 <div>
                                     <span className="text-slate-400 dark:text-slate-500 block font-semibold uppercase tracking-wider">AFP Patrono (8.75%)</span>
                                     <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">{formatMoneda(boleta.afp_patrono)}</span>
@@ -202,7 +262,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                         </div>
 
                         {/* Firmas de Conformidad */}
-                        <div className="grid grid-cols-2 gap-12 pt-16 text-center text-xs">
+                        <div className="grid grid-cols-2 gap-12 print:gap-6 pt-16 print:pt-8 text-center text-xs">
                             <div className="border-t border-slate-400 pt-2 text-slate-500 font-medium dark:text-slate-400">
                                 <p className="font-bold text-slate-800 dark:text-white print:text-black">COMSERTEL, S.A. DE C.V.</p>
                                 <p className="mt-1">Firma y Sello del Patrono</p>
@@ -217,7 +277,8 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                 </div>
 
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -335,7 +396,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
                 <h2 className="text-xl font-bold">Resumen de Planilla #{planilla.id}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-500 dark:text-slate-400 pt-2">
-                    <p><span className="font-semibold text-slate-700 dark:text-white">Rango de fechas:</span> {new Date(planilla.fecha_inicio + 'T00:00:00').toLocaleDateString()} al {new Date(planilla.fecha_fin + 'T00:00:00').toLocaleDateString()}</p>
+                    <p><span className="font-semibold text-slate-700 dark:text-white">Rango de fechas:</span> {formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)}</p>
                     <p><span className="font-semibold text-slate-700 dark:text-white">Tipo de planilla:</span> {planilla.tipo_periodo}</p>
                     <p><span className="font-semibold text-slate-700 dark:text-white">Fecha Generación:</span> {new Date(planilla.creado_en).toLocaleString()}</p>
                 </div>
@@ -477,10 +538,67 @@ const PlanillaGenerarTab = ({ onBack }) => {
     const [fechaInicio, setFechaInicio] = useState('');
     const [fechaFin, setFechaFin] = useState('');
     const [tipoPeriodo, setTipoPeriodo] = useState('MENSUAL');
+
+    // Obtener mes actual y siguiente basados en la fecha del sistema
+    const hoy = new Date();
+    const mesActualIndex = hoy.getMonth(); // 0 a 11
+    const anioActual = hoy.getFullYear();
+
+    const nombresMeses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+
+    const opcionMesActual = {
+        valor: `${anioActual}-${String(mesActualIndex + 1).padStart(2, '0')}`,
+        label: `${nombresMeses[mesActualIndex]} ${anioActual} (Mes Actual)`
+    };
+
+    const siguienteMesIndex = (mesActualIndex + 1) % 12;
+    const siguienteAnio = mesActualIndex === 11 ? anioActual + 1 : anioActual;
+    const opcionMesSiguiente = {
+        valor: `${siguienteAnio}-${String(siguienteMesIndex + 1).padStart(2, '0')}`,
+        label: `${nombresMeses[siguienteMesIndex]} ${siguienteAnio} (Mes Siguiente)`
+    };
+
+    const [mesSeleccionado, setMesSeleccionado] = useState(opcionMesActual.valor);
+    const [quincenaSeleccionada, setQuincenaSeleccionada] = useState('1'); // '1' o '2', solo se usa si tipoPeriodo === 'QUINCENAL'
+
     const [empleados, setEmpleados] = useState([]);
     const [novedades, setNovedades] = useState({}); // { [id_empleado]: { beneficios: number, vacaciones: number } }
     const [loading, setLoading] = useState(false);
     const [loadingEmpleados, setLoadingEmpleados] = useState(true);
+
+    // Actualizar automáticamente fechaInicio y fechaFin al cambiar los parámetros del período
+    useEffect(() => {
+        if (!mesSeleccionado) return;
+        
+        const [anioStr, mesStr] = mesSeleccionado.split('-');
+        const anio = parseInt(anioStr, 10);
+        const mes = parseInt(mesStr, 10); // 1 a 12
+
+        if (tipoPeriodo === 'MENSUAL') {
+            const inicio = `${anioStr}-${mesStr}-01`;
+            const ultimoDia = new Date(anio, mes, 0).getDate();
+            const fin = `${anioStr}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`;
+            
+            setFechaInicio(inicio);
+            setFechaFin(fin);
+        } else if (tipoPeriodo === 'QUINCENAL') {
+            if (quincenaSeleccionada === '1') {
+                const inicio = `${anioStr}-${mesStr}-01`;
+                const fin = `${anioStr}-${mesStr}-15`;
+                setFechaInicio(inicio);
+                setFechaFin(fin);
+            } else {
+                const inicio = `${anioStr}-${mesStr}-16`;
+                const ultimoDia = new Date(anio, mes, 0).getDate();
+                const fin = `${anioStr}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`;
+                setFechaInicio(inicio);
+                setFechaFin(fin);
+            }
+        }
+    }, [tipoPeriodo, mesSeleccionado, quincenaSeleccionada]);
 
     useEffect(() => {
         const fetchEmpleadosActivos = async () => {
@@ -601,26 +719,30 @@ const PlanillaGenerarTab = ({ onBack }) => {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha Inicio</label>
-                        <input
-                            type="date"
-                            value={fechaInicio}
-                            onChange={(e) => setFechaInicio(e.target.value)}
-                            required
-                            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-                        />
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mes a Generar</label>
+                        <select
+                            value={mesSeleccionado}
+                            onChange={(e) => setMesSeleccionado(e.target.value)}
+                            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                        >
+                            <option value={opcionMesActual.valor}>{opcionMesActual.label}</option>
+                            <option value={opcionMesSiguiente.valor}>{opcionMesSiguiente.label}</option>
+                        </select>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha Fin</label>
-                        <input
-                            type="date"
-                            value={fechaFin}
-                            onChange={(e) => setFechaFin(e.target.value)}
-                            required
-                            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-                        />
-                    </div>
+                    {tipoPeriodo === 'QUINCENAL' && (
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Período Quincenal</label>
+                            <select
+                                value={quincenaSeleccionada}
+                                onChange={(e) => setQuincenaSeleccionada(e.target.value)}
+                                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                            >
+                                <option value="1">Primera Quincena (Días 1 - 15)</option>
+                                <option value="2">Segunda Quincena (Días 16 - Fin)</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -717,12 +839,32 @@ const PlanillaGenerarTab = ({ onBack }) => {
     );
 };
 
+const getNumeroPlanilla = (p) => {
+    const fecha = parseFechaLocal(p.fecha_inicio);
+    if (!fecha) return '';
+    const mes = fecha.getMonth() + 1; // 1 a 12
+    if (p.tipo_periodo === 'MENSUAL') {
+        return mes; // 1 al 12
+    } else if (p.tipo_periodo === 'QUINCENAL') {
+        const dia = fecha.getDate();
+        if (dia <= 15) {
+            return (mes - 1) * 2 + 1; // 1 al 23 (impares)
+        } else {
+            return (mes - 1) * 2 + 2; // 2 al 24 (pares)
+        }
+    }
+    return '';
+};
+
 /**
  * Pestaña con el listado principal de Planillas.
  */
-const PlanillaListTab = ({ onVerDetalle, onGenerarClick }) => {
+const PlanillaListTab = ({ onVerDetalle }) => {
     const [planillasList, setPlanillasList] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filtroFrecuencia, setFiltroFrecuencia] = useState('TODOS');
+    const [filtroAno, setFiltroAno] = useState('TODOS');
+    const [filtroMes, setFiltroMes] = useState('TODOS');
 
     const fetchPlanillas = async () => {
         setLoading(true);
@@ -781,17 +923,91 @@ const PlanillaListTab = ({ onVerDetalle, onGenerarClick }) => {
         }
     };
 
+    const anosDisponibles = Array.from(
+        new Set(
+            planillasList
+                .map((p) => {
+                    const d = parseFechaLocal(p.fecha_inicio);
+                    return d ? d.getFullYear().toString() : null;
+                })
+                .filter(Boolean)
+        )
+    ).sort((a, b) => b - a);
+
+    if (anosDisponibles.length === 0) {
+        anosDisponibles.push(new Date().getFullYear().toString());
+    }
+
+    const planillasFiltradas = planillasList.filter((p) => {
+        if (filtroFrecuencia !== 'TODOS' && p.tipo_periodo !== filtroFrecuencia) return false;
+        
+        const fecha = parseFechaLocal(p.fecha_inicio);
+        if (!fecha) return false;
+
+        const ano = fecha.getFullYear().toString();
+        if (filtroAno !== 'TODOS' && ano !== filtroAno) return false;
+
+        const mes = (fecha.getMonth() + 1).toString();
+        if (filtroMes !== 'TODOS' && mes !== filtroMes) return false;
+
+        return true;
+    });
+
     return (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-4">
                 <h3 className="font-bold text-md text-slate-800 dark:text-white m-0">Historial de Planillas</h3>
-                <button
-                    onClick={onGenerarClick}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer"
-                >
-                    <i className="bi bi-plus-lg"></i>
-                    Nueva Planilla
-                </button>
+                <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">Frecuencia:</label>
+                        <select
+                            value={filtroFrecuencia}
+                            onChange={(e) => setFiltroFrecuencia(e.target.value)}
+                            className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-lg text-sm bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 dark:text-slate-100 transition-colors"
+                        >
+                            <option value="TODOS">Todas</option>
+                            <option value="QUINCENAL">Quincenales</option>
+                            <option value="MENSUAL">Mensuales</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">Año:</label>
+                        <select
+                            value={filtroAno}
+                            onChange={(e) => setFiltroAno(e.target.value)}
+                            className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-lg text-sm bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 dark:text-slate-100 transition-colors"
+                        >
+                            <option value="TODOS">Todos</option>
+                            {anosDisponibles.map((ano) => (
+                                <option key={ano} value={ano}>{ano}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">Mes:</label>
+                        <select
+                            value={filtroMes}
+                            onChange={(e) => setFiltroMes(e.target.value)}
+                            className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded-lg text-sm bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 dark:text-slate-100 transition-colors"
+                        >
+                            <option value="TODOS">Todos</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             {loading ? (
@@ -804,12 +1020,17 @@ const PlanillaListTab = ({ onVerDetalle, onGenerarClick }) => {
                     <i className="bi bi-calculator text-5xl text-slate-300 dark:text-slate-700 block mb-3"></i>
                     <p className="text-slate-500 dark:text-slate-400 font-medium">No se han registrado planillas en el sistema.</p>
                 </div>
+            ) : planillasFiltradas.length === 0 ? (
+                <div className="py-16 text-center">
+                    <i className="bi bi-funnel text-5xl text-slate-300 dark:text-slate-700 block mb-3"></i>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">No se encontraron planillas con la frecuencia seleccionada.</p>
+                </div>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                <th className="py-4 px-6">ID Planilla</th>
+                                <th className="py-4 px-6">Nº Planilla</th>
                                 <th className="py-4 px-6">Período de Nómina</th>
                                 <th className="py-4 px-6">Frecuencia</th>
                                 <th className="py-4 px-6">Fecha Creación</th>
@@ -818,13 +1039,13 @@ const PlanillaListTab = ({ onVerDetalle, onGenerarClick }) => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                            {planillasList.map((p) => {
+                            {planillasFiltradas.map((p) => {
                                 const esBorrador = p.estado === 'BORRADOR';
                                 return (
                                     <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                        <td className="py-4 px-6 font-bold text-slate-800 dark:text-white">#{p.id}</td>
+                                        <td className="py-4 px-6 font-bold text-slate-800 dark:text-white">#{getNumeroPlanilla(p)}</td>
                                         <td className="py-4 px-6 font-semibold">
-                                            {new Date(p.fecha_inicio + 'T00:00:00').toLocaleDateString()} al {new Date(p.fecha_fin + 'T00:00:00').toLocaleDateString()}
+                                            {formatFechaLocal(p.fecha_inicio)} al {formatFechaLocal(p.fecha_fin)}
                                         </td>
                                         <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{p.tipo_periodo}</td>
                                         <td className="py-4 px-6 text-slate-400 font-medium">{new Date(p.creado_en).toLocaleString()}</td>
@@ -893,12 +1114,48 @@ const V2_ContenedorPlanilla = () => {
                 </div>
             </div>
 
+            {/* Tabs Navigation (Oculta al ver detalle o imprimir) */}
+            {viewMode !== 'detalle' && (
+                <div className="mb-8 flex justify-center print:hidden">
+                    <nav className="flex space-x-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[15px]" aria-label="Tabs">
+                        <button
+                            onClick={() => {
+                                setViewMode('list');
+                                setSelectedPlanillaId(null);
+                            }}
+                            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 cursor-pointer flex items-center ${
+                                viewMode === 'list'
+                                    ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
+                                    : 'text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                            }`}
+                        >
+                            <i className="bi bi-clock-history me-2"></i>
+                            Historial de Planillas
+                        </button>
+                        
+                        <button
+                            onClick={() => {
+                                setViewMode('generar');
+                                setSelectedPlanillaId(null);
+                            }}
+                            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 cursor-pointer flex items-center ${
+                                viewMode === 'generar'
+                                    ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
+                                    : 'text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                            }`}
+                        >
+                            <i className="bi bi-plus-circle me-2"></i>
+                            Generar Planilla
+                        </button>
+                    </nav>
+                </div>
+            )}
+
             {/* Contenido dinámico según el viewMode */}
             <div className="mt-6">
                 {viewMode === 'list' && (
                     <PlanillaListTab
                         onVerDetalle={handleVerDetalle}
-                        onGenerarClick={() => setViewMode('generar')}
                     />
                 )}
                 {viewMode === 'generar' && (

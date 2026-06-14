@@ -149,6 +149,88 @@ const generarPlanilla = async (req, res) => {
             });
         }
 
+        // Obtener año y mes de la planilla a generar (usando fecha_inicio)
+        const fInicioPlanilla = new Date(fecha_inicio + 'T00:00:00');
+        if (isNaN(fInicioPlanilla.getTime())) {
+            connection.release();
+            return res.status(400).json({
+                status: 'error',
+                error: 'BAD_REQUEST',
+                message: 'La fecha de inicio no es válida.'
+            });
+        }
+        const anioPlanilla = fInicioPlanilla.getFullYear();
+        const mesPlanilla = fInicioPlanilla.getMonth() + 1; // 1 a 12
+
+        // Obtener año y mes actual del sistema
+        const hoy = new Date();
+        const anioActual = hoy.getFullYear();
+        const mesActual = hoy.getMonth() + 1; // 1 a 12
+
+        // 1. Validar que no se generen planillas para meses pasados
+        if (anioPlanilla < anioActual || (anioPlanilla === anioActual && mesPlanilla < mesActual)) {
+            connection.release();
+            return res.status(400).json({
+                status: 'error',
+                error: 'PAST_MONTH_NOT_ALLOWED',
+                message: 'No se pueden generar planillas para meses anteriores al mes actual.'
+            });
+        }
+
+        // 2. Validar que no se intente generar para meses más allá del mes siguiente
+        const mesesDiferencia = (anioPlanilla - anioActual) * 12 + (mesPlanilla - mesActual);
+        if (mesesDiferencia > 1) {
+            connection.release();
+            return res.status(400).json({
+                status: 'error',
+                error: 'FUTURE_MONTH_NOT_ALLOWED',
+                message: 'Solo se pueden generar planillas para el mes actual o el mes siguiente.'
+            });
+        }
+
+        // 3. Si se intenta generar el mes siguiente, validar que el mes actual esté cerrado
+        if (mesesDiferencia === 1) {
+            const [planillasMesActual] = await connection.query(
+                `SELECT estado FROM planillas 
+                 WHERE YEAR(fecha_inicio) = ? AND MONTH(fecha_inicio) = ?`,
+                [anioActual, mesActual]
+            );
+
+            if (planillasMesActual.length === 0) {
+                connection.release();
+                return res.status(400).json({
+                    status: 'error',
+                    error: 'CURRENT_MONTH_NOT_GENERATED',
+                    message: 'No se puede generar la planilla del mes siguiente porque aún no se han generado las planillas del mes actual.'
+                });
+            }
+
+            const algunaAbierta = planillasMesActual.some(p => p.estado !== 'CERRADA');
+            if (algunaAbierta) {
+                connection.release();
+                return res.status(400).json({
+                    status: 'error',
+                    error: 'CURRENT_MONTH_NOT_CLOSED',
+                    message: 'No se puede generar la planilla del mes siguiente hasta que todas las planillas del mes actual estén en estado CERRADA.'
+                });
+            }
+        }
+
+        // 4. Validar que no exista ya una planilla registrada para ese rango exacto y tipo
+        const [planillasExistentes] = await connection.query(
+            `SELECT id FROM planillas 
+             WHERE fecha_inicio = ? AND fecha_fin = ? AND tipo_periodo = ?`,
+            [fecha_inicio, fecha_fin, tipo_periodo]
+        );
+        if (planillasExistentes.length > 0) {
+            connection.release();
+            return res.status(400).json({
+                status: 'error',
+                error: 'PLANILLA_ALREADY_EXISTS',
+                message: 'Ya existe una planilla registrada para el período y rango de fechas especificados.'
+            });
+        }
+
         // Iniciar transacción
         await connection.beginTransaction();
 
