@@ -348,6 +348,256 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
         }
     };
 
+    const handlePrintAll = () => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Bloqueador de ventanas emergentes',
+                text: 'Por favor, permita las ventanas emergentes para poder imprimir todas las boletas de pago.'
+            });
+            return;
+        }
+
+        let boletasHTML = '';
+        boletas.forEach((b) => {
+            const totalDeducciones = parseFloat(b.isss_empleado) + parseFloat(b.afp_empleado) + parseFloat(b.renta) + (parseFloat(b.descuento_ausencias) || 0.0);
+            const salarioProporcional = planilla.tipo_periodo === 'QUINCENAL' ? b.salario_base / 2.0 : b.salario_base;
+            
+            boletasHTML += `
+                <div class="boleta-page" style="page-break-after: always; padding: 20px; font-family: sans-serif; color: black; background: white; max-width: 800px; margin: 0 auto;">
+                    <div style="border: 2px solid #ccc; padding: 20px; border-radius: 8px;">
+                        <div style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h2 style="margin: 0; font-size: 20px; text-transform: uppercase;">COMSERTEL, S.A. DE C.V.</h2>
+                            <p style="margin: 5px 0 0; font-size: 11px; text-transform: uppercase; color: #555; font-weight: bold;">Servicios de Conectividad y Telecomunicaciones</p>
+                            <p style="margin: 2px 0 0; font-size: 11px; color: #777;">San Salvador, El Salvador</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0; font-size: 14px; text-transform: uppercase; color: #333;">Boleta de Pago Individual</h3>
+                            <p style="margin: 5px 0 0; font-size: 11px; color: #666;">
+                                Período del ${formatFechaLocal(planilla.fecha_inicio)} al ${formatFechaLocal(planilla.fecha_fin)} (${planilla.tipo_periodo})
+                            </p>
+                        </div>
+                        
+                        <table style="width: 100%; font-size: 12px; background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 4px; width: 50%;"><strong>Colaborador:</strong> ${b.nombres} ${b.apellidos}</td>
+                                <td style="padding: 4px; width: 50%;"><strong>DUI:</strong> ${b.dui}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px;"><strong>Cargo:</strong> ${b.cargo}</td>
+                                <td style="padding: 4px;"><strong>NIT:</strong> ${b.nit}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px;"><strong>Salario Base Mensual:</strong> ${formatMoneda(b.salario_base)}</td>
+                                <td style="padding: 4px;"><strong>Días Cancelados:</strong> ${b.dias_trabajados} días</td>
+                            </tr>
+                        </table>
+                        
+                        <div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; font-size: 12px;">
+                            <div style="width: 48%; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;">
+                                <div style="background: #eee; padding: 6px 12px; font-weight: bold; font-size: 11px; text-transform: uppercase;">Ingresos y Devengados</div>
+                                <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span>Salario Proporcional:</span>
+                                            <span>${formatMoneda(salarioProporcional)}</span>
+                                        </div>
+                                        ${Number(b.beneficios) > 0 ? `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span>Beneficios / Bonos:</span>
+                                                <span style="color: green;">+${formatMoneda(b.beneficios)}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${Number(b.vacaciones) > 0 ? `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span>Vacaciones Pagadas:</span>
+                                                <span style="color: green;">+${formatMoneda(b.vacaciones)}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${Number(b.aguinaldo) > 0 ? `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span>Aguinaldo Exento:</span>
+                                                <span style="color: green;">+${formatMoneda(b.aguinaldo)}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${Number(b.quincena_veinticinco) > 0 ? `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span>Quincena Veinticinco:</span>
+                                                <span style="color: green;">+${formatMoneda(b.quincena_veinticinco)}</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div style="border-top: 1px solid #eee; padding-top: 6px; margin-top: 6px; display: flex; justify-content: space-between; font-weight: bold;">
+                                        <span>Total Devengado:</span>
+                                        <span>${formatMoneda(b.salario_devengado)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="width: 48%; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;">
+                                <div style="background: #eee; padding: 6px 12px; font-weight: bold; font-size: 11px; text-transform: uppercase;">Descuentos y Deducciones</div>
+                                <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        ${Number(b.descuento_ausencias) > 0 ? `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span>Descuento Ausencias:</span>
+                                                <span style="color: red;">-${formatMoneda(b.descuento_ausencias)}</span>
+                                            </div>
+                                        ` : ''}
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span>AFP Empleado (7.25%):</span>
+                                            <span style="color: red;">-${formatMoneda(b.afp_empleado)}</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span>ISSS Empleado (3.00%):</span>
+                                            <span style="color: red;">-${formatMoneda(b.isss_empleado)}</span>
+                                        </div>
+                                        ${Number(b.renta) > 0 ? `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span>Renta Retención:</span>
+                                                <span style="color: red;">-${formatMoneda(b.renta)}</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div style="border-top: 1px solid #eee; padding-top: 6px; margin-top: 6px; display: flex; justify-content: space-between; font-weight: bold;">
+                                        <span>Total Retenciones:</span>
+                                        <span>-${formatMoneda(totalDeducciones)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #ebf5ff; padding: 12px 15px; border-radius: 6px; border: 1px solid #cce5ff; margin-bottom: 20px; font-size: 14px;">
+                            <div>
+                                <span style="font-size: 10px; color: #555; text-transform: uppercase; font-weight: bold; display: block;">Líquido a Recibir</span>
+                                <span style="font-size: 20px; font-weight: bold; font-family: monospace; color: #004085;">${formatMoneda(b.salario_neto)}</span>
+                            </div>
+                            <div style="font-size: 10px; color: #777; font-weight: 500;">
+                                Monto en Dólares de los Estados Unidos de América
+                            </div>
+                        </div>
+                        
+                        <div style="border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background: #fafafa; padding: 10px; font-size: 10px;">
+                            <div style="font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 4px; text-transform: uppercase; color: #666;">Aportes Patronales (Costeo Empresa)</div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><strong>AFP Patrono (8.75%):</strong> ${formatMoneda(b.afp_patrono)}</span>
+                                <span><strong>ISSS Patrono (7.50%):</strong> ${formatMoneda(b.isss_patrono)}</span>
+                                <span><strong>INCAF Patrono (1.00%):</strong> ${formatMoneda(b.insaforp_patrono)}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-top: 50px; text-align: center; font-size: 10px; gap: 40px;">
+                            <div style="flex: 1; border-top: 1px solid #000; padding-top: 5px;">
+                                <strong style="font-size: 11px;">COMSERTEL, S.A. DE C.V.</strong><br>Firma y Sello del Patrono
+                            </div>
+                            <div style="flex: 1; border-top: 1px solid #000; padding-top: 5px;">
+                                <strong style="font-size: 11px;">${b.nombres} ${b.apellidos}</strong><br>Firma de Conformidad Empleado
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Boletas de Pago - Periodo ${planilla.id}</title>
+                    <style>
+                        body { margin: 0; padding: 0; background: white; }
+                        @media print {
+                            body { background: white; }
+                            .boleta-page { page-break-after: always; }
+                            .boleta-page:last-child { page-break-after: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${boletasHTML}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+
+    const handleExportCSV = () => {
+        const headers = [
+            'Empleado',
+            'Cargo',
+            'DUI',
+            'NIT',
+            'Dias Trabajados',
+            'Salario Base',
+            'Salario Proporcional',
+            'Beneficios/Comisiones',
+            'Vacaciones',
+            'Aguinaldo',
+            'Quincena 25',
+            'Salario Devengado',
+            'Deduccion Ausencias',
+            'ISSS Empleado',
+            'AFP Empleado',
+            'Renta',
+            'Total Deducciones',
+            'Salario Neto',
+            'ISSS Patrono',
+            'AFP Patrono',
+            'INCAF Patrono'
+        ];
+        
+        const rows = boletas.map((b) => {
+            const totalDeducciones = parseFloat(b.isss_empleado) + parseFloat(b.afp_empleado) + parseFloat(b.renta) + (parseFloat(b.descuento_ausencias) || 0.0);
+            const salarioProporcional = planilla.tipo_periodo === 'QUINCENAL' ? b.salario_base / 2.0 : b.salario_base;
+            
+            return [
+                `"${b.nombres} ${b.apellidos}"`,
+                `"${b.cargo}"`,
+                `"${b.dui}"`,
+                `"${b.nit}"`,
+                b.dias_trabajados,
+                b.salario_base,
+                salarioProporcional.toFixed(2),
+                b.beneficios,
+                b.vacaciones,
+                b.aguinaldo,
+                b.quincena_veinticinco,
+                b.salario_devengado,
+                b.descuento_ausencias || '0.00',
+                b.isss_empleado,
+                b.afp_empleado,
+                b.renta,
+                totalDeducciones.toFixed(2),
+                b.salario_neto,
+                b.isss_patrono,
+                b.afp_patrono,
+                b.insaforp_patrono
+            ];
+        });
+        
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += headers.join(",") + "\n";
+        rows.forEach((rowArray) => {
+            csvContent += rowArray.join(",") + "\n";
+        });
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Planilla_${planilla.id}_Periodo_${planilla.fecha_inicio}_al_${planilla.fecha_fin}.csv`);
+        document.body.appendChild(link);
+        
+        link.click();
+        document.body.removeChild(link);
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
@@ -380,6 +630,20 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                     }`}>
                         Estado: {planilla.estado}
                     </span>
+                    <button
+                        onClick={handlePrintAll}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                        <i className="bi bi-printer"></i>
+                        Imprimir Boletas
+                    </button>
+                    <button
+                        onClick={handleExportCSV}
+                        className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                        <i className="bi bi-file-earmark-spreadsheet"></i>
+                        Exportar CSV
+                    </button>
                     {esBorrador && (
                         <button
                             onClick={handleCerrarPlanilla}
@@ -402,39 +666,18 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 </div>
             </div>
 
-            {/* Tarjetas de Resumen Financiero Consolidadas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Consolidado Unificado de la Planilla */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden p-6 space-y-6 shadow-sm text-left">
+                <h3 className="font-bold text-md text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 uppercase text-xs tracking-wider">
+                    Consolidado General de Costos y Prestaciones (Periodo)
+                </h3>
                 
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-1">
-                    <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider block">Total Devengado</span>
-                    <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white block">{formatMoneda(resumen.total_salarios_devengados)}</span>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-1">
-                    <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider block">Total Retenciones (Deducciones)</span>
-                    <span className="text-2xl font-mono font-bold text-red-600 block">
-                        -{formatMoneda(resumen.total_isss_empleado + resumen.total_afp_empleado + resumen.total_renta)}
-                    </span>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-1">
-                    <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider block">Total Líquido a Pagar</span>
-                    <span className="text-2xl font-mono font-bold text-emerald-600 block">{formatMoneda(resumen.total_salarios_netos)}</span>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-1">
-                    <span className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider block">Coste Total Patronal</span>
-                    <span className="text-2xl font-mono font-bold text-blue-600 block">{formatMoneda(resumen.total_costo_patronal)}</span>
-                </div>
-
-            </div>
-
-            {/* Desglose Detallado de Aportes de Ley */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden p-6 space-y-4">
-                <h3 className="font-bold text-md text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 uppercase text-xs tracking-wider">Consolidado Fiscal y de Seguridad Social</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-sm">
+                    {/* Retenciones Empleados */}
                     <div className="space-y-3">
-                        <h4 className="font-bold text-slate-500 text-xs uppercase tracking-wider">Aportaciones del Colaborador</h4>
+                        <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
+                            Deducciones de Colaboradores
+                        </h4>
                         <div className="flex justify-between">
                             <span className="text-slate-600 dark:text-slate-400">ISSS Empleado (3.00%):</span>
                             <span className="font-mono font-semibold">{formatMoneda(resumen.total_isss_empleado)}</span>
@@ -448,8 +691,12 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                             <span className="font-mono font-semibold">{formatMoneda(resumen.total_renta)}</span>
                         </div>
                     </div>
+
+                    {/* Aportes Patronales */}
                     <div className="space-y-3">
-                        <h4 className="font-bold text-slate-500 text-xs uppercase tracking-wider">Carga Social Patronal</h4>
+                        <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
+                            Carga Social Patronal
+                        </h4>
                         <div className="flex justify-between">
                             <span className="text-slate-600 dark:text-slate-400">ISSS Patronal (7.50%):</span>
                             <span className="font-mono font-semibold">{formatMoneda(resumen.total_isss_patrono)}</span>
@@ -459,13 +706,50 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                             <span className="font-mono font-semibold">{formatMoneda(resumen.total_afp_patrono)}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">INCAF Capacitación (1.00% / 0.25%):</span>
+                            <span className="text-slate-600 dark:text-slate-400">INCAF Capacitación (1.00%):</span>
                             <span className="font-mono font-semibold">{formatMoneda(resumen.total_insaforp_patrono)}</span>
                         </div>
                         <div className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-2 font-bold text-blue-600">
                             <span>Total Aportes Patronales:</span>
                             <span className="font-mono">{formatMoneda(resumen.total_aportes_patronales)}</span>
                         </div>
+                    </div>
+
+                    {/* Prestaciones Adicionales (Tarea 12) */}
+                    <div className="space-y-3">
+                        <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
+                            Prestaciones e Ingresos Adicionales
+                        </h4>
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Beneficios / Comisiones:</span>
+                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_beneficios)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Vacaciones a Pagar:</span>
+                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_vacaciones)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Aguinaldos de Ley:</span>
+                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_aguinaldo)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Quincena Veinticinco:</span>
+                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_quincena_veinticinco)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Coste Total Patronal Resumido */}
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-slate-800/20 p-4 rounded-xl">
+                    <div className="text-left">
+                        <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">Resumen del Periodo</span>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Salarios Devengados ({formatMoneda(resumen.total_salarios_devengados)}) + Carga Social ({formatMoneda(resumen.total_aportes_patronales)})
+                        </p>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">Coste Total Patronal</span>
+                        <span className="text-2xl font-mono font-bold text-blue-600 dark:text-blue-400">{formatMoneda(resumen.total_costo_patronal)}</span>
                     </div>
                 </div>
             </div>
@@ -513,6 +797,15 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                                     </tr>
                                 );
                             })}
+                            
+                            {/* Fila de Totales de la Tabla (Tarea 13) */}
+                            <tr className="bg-slate-50/80 dark:bg-slate-800/80 font-bold border-t-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+                                <td className="py-4 px-6" colSpan="3">Totales de la Planilla</td>
+                                <td className="py-4 px-6 text-right font-mono">{formatMoneda(resumen.total_salarios_devengados)}</td>
+                                <td className="py-4 px-6 text-right font-mono text-red-500">-{formatMoneda(resumen.total_isss_empleado + resumen.total_afp_empleado + resumen.total_renta)}</td>
+                                <td className="py-4 px-6 text-right font-mono text-emerald-600">{formatMoneda(resumen.total_salarios_netos)}</td>
+                                <td className="py-4 px-6"></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
