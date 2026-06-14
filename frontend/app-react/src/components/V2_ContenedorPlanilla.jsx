@@ -581,21 +581,18 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 b.insaforp_patrono
             ];
         });
-        
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-        csvContent += headers.join(",") + "\n";
-        rows.forEach((rowArray) => {
-            csvContent += rowArray.join(",") + "\n";
-        });
-        
-        const encodedUri = encodeURI(csvContent);
+        const csvString = "\uFEFF" + headers.join(",") + "\n" + rows.map(rowArray => rowArray.join(",")).join("\n");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
+        link.setAttribute("href", url);
         link.setAttribute("download", `Planilla_${planilla.id}_Periodo_${planilla.fecha_inicio}_al_${planilla.fecha_fin}.csv`);
+        link.style.visibility = 'hidden';
         document.body.appendChild(link);
         
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     if (loading) {
@@ -656,100 +653,89 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 </div>
             </div>
 
-            {/* Información General */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <h2 className="text-xl font-bold">Resumen de Planilla #{planilla.id}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-500 dark:text-slate-400 pt-2">
-                    <p><span className="font-semibold text-slate-700 dark:text-white">Rango de fechas:</span> {formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)}</p>
-                    <p><span className="font-semibold text-slate-700 dark:text-white">Tipo de planilla:</span> {planilla.tipo_periodo}</p>
-                    <p><span className="font-semibold text-slate-700 dark:text-white">Fecha Generación:</span> {new Date(planilla.creado_en).toLocaleString()}</p>
-                </div>
-            </div>
-
-            {/* Consolidado Unificado de la Planilla */}
+            {/* Consolidado General y Resumen Unificado de la Planilla */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden p-6 space-y-6 shadow-sm text-left">
-                <h3 className="font-bold text-md text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 uppercase text-xs tracking-wider">
-                    Consolidado General de Costos y Prestaciones (Periodo)
-                </h3>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-sm">
-                    {/* Retenciones Empleados */}
-                    <div className="space-y-3">
-                        <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
-                            Deducciones de Colaboradores
-                        </h4>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">ISSS Empleado (3.00%):</span>
-                            <span className="font-mono font-semibold">{formatMoneda(resumen.total_isss_empleado)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">AFP Empleado (7.25%):</span>
-                            <span className="font-mono font-semibold">{formatMoneda(resumen.total_afp_empleado)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Retención Impuesto sobre la Renta (ISR):</span>
-                            <span className="font-mono font-semibold">{formatMoneda(resumen.total_renta)}</span>
-                        </div>
-                    </div>
-
-                    {/* Aportes Patronales */}
-                    <div className="space-y-3">
-                        <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
-                            Carga Social Patronal
-                        </h4>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">ISSS Patronal (7.50%):</span>
-                            <span className="font-mono font-semibold">{formatMoneda(resumen.total_isss_patrono)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">AFP Patronal (8.75%):</span>
-                            <span className="font-mono font-semibold">{formatMoneda(resumen.total_afp_patrono)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">INCAF Capacitación (1.00%):</span>
-                            <span className="font-mono font-semibold">{formatMoneda(resumen.total_insaforp_patrono)}</span>
-                        </div>
-                        <div className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-2 font-bold text-blue-600">
-                            <span>Total Aportes Patronales:</span>
-                            <span className="font-mono">{formatMoneda(resumen.total_aportes_patronales)}</span>
-                        </div>
-                    </div>
-
-                    {/* Prestaciones Adicionales (Tarea 12) */}
-                    <div className="space-y-3">
-                        <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
-                            Prestaciones e Ingresos Adicionales
-                        </h4>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Beneficios / Comisiones:</span>
-                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_beneficios)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Vacaciones a Pagar:</span>
-                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_vacaciones)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Aguinaldos de Ley:</span>
-                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_aguinaldo)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">Quincena Veinticinco:</span>
-                            <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_quincena_veinticinco)}</span>
-                        </div>
+                {/* Cabecera: Resumen de Planilla */}
+                <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Resumen de Planilla #{planilla.id}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-500 dark:text-slate-400 pt-3">
+                        <p><span className="font-semibold text-slate-700 dark:text-white">Rango de fechas:</span> {formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)}</p>
+                        <p><span className="font-semibold text-slate-700 dark:text-white">Tipo de planilla:</span> {planilla.tipo_periodo}</p>
+                        <p><span className="font-semibold text-slate-700 dark:text-white">Fecha Generación:</span> {new Date(planilla.creado_en).toLocaleString()}</p>
                     </div>
                 </div>
 
-                {/* Coste Total Patronal Resumido */}
-                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-slate-800/20 p-4 rounded-xl">
-                    <div className="text-left">
-                        <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">Resumen del Periodo</span>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Salarios Devengados ({formatMoneda(resumen.total_salarios_devengados)}) + Carga Social ({formatMoneda(resumen.total_aportes_patronales)})
-                        </p>
-                    </div>
-                    <div className="text-right">
-                        <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">Coste Total Patronal</span>
-                        <span className="text-2xl font-mono font-bold text-blue-600 dark:text-blue-400">{formatMoneda(resumen.total_costo_patronal)}</span>
+                {/* Contenido: Consolidado de Costos y Prestaciones */}
+                <div>
+                    <h3 className="font-bold text-md text-slate-800 dark:text-white pb-3 uppercase text-xs tracking-wider">
+                        Consolidado General de Costos y Prestaciones (Periodo)
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-sm">
+                        {/* Retenciones Empleados */}
+                        <div className="space-y-3">
+                            <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
+                                Deducciones de Colaboradores
+                            </h4>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">ISSS Empleado (3.00%):</span>
+                                <span className="font-mono font-semibold">{formatMoneda(resumen.total_isss_empleado)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">AFP Empleado (7.25%):</span>
+                                <span className="font-mono font-semibold">{formatMoneda(resumen.total_afp_empleado)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">Retención Impuesto sobre la Renta (ISR):</span>
+                                <span className="font-mono font-semibold">{formatMoneda(resumen.total_renta)}</span>
+                            </div>
+                        </div>
+
+                        {/* Aportes Patronales */}
+                        <div className="space-y-3">
+                            <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
+                                Carga Social Patronal
+                            </h4>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">ISSS Patronal (7.50%):</span>
+                                <span className="font-mono font-semibold">{formatMoneda(resumen.total_isss_patrono)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">AFP Patronal (8.75%):</span>
+                                <span className="font-mono font-semibold">{formatMoneda(resumen.total_afp_patrono)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">INCAF Capacitación (1.00%):</span>
+                                <span className="font-mono font-semibold">{formatMoneda(resumen.total_insaforp_patrono)}</span>
+                            </div>
+                            <div className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-2 font-bold text-blue-600">
+                                <span>Total Aportes Patronales:</span>
+                                <span className="font-mono">{formatMoneda(resumen.total_aportes_patronales)}</span>
+                            </div>
+                        </div>
+
+                        {/* Prestaciones Adicionales (Tarea 12) */}
+                        <div className="space-y-3">
+                            <h4 className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50 dark:border-slate-800/50 pb-1.5">
+                                Prestaciones e Ingresos Adicionales
+                            </h4>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">Beneficios / Comisiones:</span>
+                                <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_beneficios)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">Vacaciones a Pagar:</span>
+                                <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_vacaciones)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">Aguinaldos de Ley:</span>
+                                <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_aguinaldo)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">Quincena Veinticinco:</span>
+                                <span className="font-mono font-semibold text-emerald-600">+{formatMoneda(resumen.total_quincena_veinticinco)}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

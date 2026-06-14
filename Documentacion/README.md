@@ -16,6 +16,8 @@ Estandares de codificacion, diseno del sistema y especificaciones de componentes
 * [Buenas Practicas Frontend](02-desarrollo-arquitectura/Buenas-Practicas-Frontend.md): Convenciones y pautas para el desarrollo de la interfaz de usuario.
 * [Guia JWT y Seguridad](02-desarrollo-arquitectura/Guia-JWT-y-Seguridad.md): Protocolos de autenticacion, autorizacion y resguardo de datos.
 * [Nuevo Modelo BD](02-desarrollo-arquitectura/Nuevo-Modelo-BD.md): Diagramas y diseno de la base de datos relacional.
+* [Solucion Fechas Invalidas](02-desarrollo-arquitectura/Solucion-Fechas-Invalidas.md): Analisis y arreglo de problemas de fechas locales en el listado de planillas.
+* [Solucion Error Generar Planilla](02-desarrollo-arquitectura/Solucion-Error-Generar-Planilla.md): Diagnostico y solucion al error HTTP 500 al generar planilla y boletas.
 
 ### 3. Reglas de Negocio y Logica Fiscal/Laboral
 Documentos legales, matematicos y de formulacion que describen el calculo de planillas y prestaciones.

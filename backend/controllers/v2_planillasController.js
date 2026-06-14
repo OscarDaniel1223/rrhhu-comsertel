@@ -47,7 +47,7 @@ const getPlanillaById = async (req, res) => {
 
         // 2. Obtener boletas de pago asociadas con datos del empleado
         const boletasQuery = `
-            SELECT b.*, e.nombres, e.apellidos, e.dui, e.nit, c.titulo AS cargo, c.salario_base
+            SELECT b.*, b.incaf_patrono AS insaforp_patrono, e.nombres, e.apellidos, e.dui, e.nit, c.titulo AS cargo, c.salario_base
             FROM boletas_pago b
             JOIN empleados e ON b.id_empleado = e.id
             JOIN cargos c ON e.id_cargo = c.id
@@ -343,7 +343,7 @@ const generarPlanilla = async (req, res) => {
                 `INSERT INTO boletas_pago (
                     id_planilla, id_empleado, dias_trabajados, salario_devengado,
                     isss_empleado, afp_empleado, renta, salario_neto,
-                    isss_patrono, afp_patrono, insaforp_patrono,
+                    isss_patrono, afp_patrono, incaf_patrono,
                     beneficios, vacaciones, aguinaldo, quincena_veinticinco
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
@@ -357,7 +357,7 @@ const generarPlanilla = async (req, res) => {
                     boletaDesglose.salario_neto,
                     boletaDesglose.isss_patrono,
                     boletaDesglose.afp_patrono,
-                    boletaDesglose.insaforp_patrono,
+                    boletaDesglose.incaf_patrono,
                     nov.beneficios,
                     nov.vacaciones,
                     aguinaldoVal,

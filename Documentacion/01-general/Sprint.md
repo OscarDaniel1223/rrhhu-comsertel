@@ -61,3 +61,13 @@ Este documento organiza el trabajo para el grupo de 5 estudiantes.
 - [x] **Tarea 12 (Frontend):** Se cuestiona los apartados de Beneficios / Comisiones en el consolidado-base.md no se ve Vacaciones a Pagar  se deberia cual automaticamente, como prestaciones, vaciones, renta, aguinaldo, quincena, etc. (Completado)
 - [x] **Tarea 13 (Frontend):** en Resumen de Planilla quitar, Total Devengado, Total Retenciones (Deducciones), Total Líquido a Pagar, Coste Total Patronal que si no me equivoco son cards en todo caso retangulos con bordes redondeados y mostrarlos al final de la tabla Detalle de Empleados en Planilla como totales execto Coste Total Patronal (Completado)
 - [x] **Tarea 14 (Frontend):** Fusionar Consolidado Fiscal y de Seguridad Social con Resumen de Planilla en una sola card y luego sigue la tabla arriba donde aparece Estado: CERRADA agregar un boton de imprimir todas las boletas de pago y un boton de importar a csv (Completado)
+
+- [x] **Tarea 15 (Frontend):** unir la tarjeta Resumen de planilla con Consolidado General de Costos y Prestaciones (Periodo), quitar la tarjeta interna y su contenido que aparece adentro de Consolidado General de Costos y Prestaciones (Periodo) (Completado)
+- [x] **Tarea 16 (Frontend):** El boton Exportar CSV no genera el archivo CSV (Completado)
+- [x] **Tarea 17 (Frontend):** Dado las restricciones de la tarea 11 y quiero suponer que por eso al tratar de generar un nueva planilla con el boton procesar y generar planilla del mes actual lanza un error que dice: Error al generar planilla
+Error interno del servidor al generar la planilla. documenta el problema y solucion (Completado)
+
+- [] **Tarea 18 (Frontend):** Por que las deducciones aparecen en rojo y por que salen con el signo menos
+- [] **Tarea 19 (Frontend):** El boton Exportar CSV sigue sin funcionar
+- [] **Tarea 20 (Frontend):** en la tabla Registrar Novedades y Prestaciones Adicionales detallar Beneficios / Comisiones y si existe en las tablas de la base de datos locar y por que las Vacaciones a Pagar se tiene que ingresar manualmente, documenta la respuesta
+- [] **Tarea 21 (Frontend):** generar planilla funciona correctamente al dar al boton Procesar y generar planilla, pero dado las restricciones que impuse solo de captuar el mes actual y el siguiente no puedo hacer pruebas a futuro, quitar ese limitacion para hacer pruebas de que ocurre cuando se es diciembre y enero pero antes de eso hacer un commit para guardar todos los avances asi para cuando terminemos de hacer pruebas regresar al commit anterior y de hacer esa modificacion en codigo que nos da libre manipulacion del sistema de planillas
