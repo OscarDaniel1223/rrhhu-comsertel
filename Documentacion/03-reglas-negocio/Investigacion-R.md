@@ -200,3 +200,14 @@ FIN
 
 > [!NOTE]
 > **Nota de actualización:** Se corrigieron las fórmulas del algoritmo para eximir el Aguinaldo y la Quincena Veinticinco de los cálculos de cotizaciones previsionales (AFP), seguro de salud (ISSS) e Impuesto sobre la Renta (ISR) a fin de respetar la legislación de El Salvador. También se ajustó el techo cotizable de AFP a $7,028.29, se introdujo el cálculo exento de la Quincena Veinticinco y se integró la condición de obligatoriedad y tasas especiales de INCAF basadas en el sector agropecuario y la nómina de diez o más trabajadores.
+
+>El símbolo <- que ves en el documento Canvas se conoce como operador de asignación.
+
+>En pseudocódigo y diagramas de flujo, este símbolo significa que el valor o el resultado de la operación que está a la derecha se "guarda" o se "asigna" a la variable que está a la izquierda.
+
+>Por ejemplo, en la línea que seleccionaste:
+Vacaciones <- CalcularPagoVacaciones(Salario_Base)
+
+>Se lee de la siguiente manera: "Calcula el pago de vacaciones usando el salario base, y asigna/guarda ese resultado dentro de la variable llamada Vacaciones".
+
+>Es el equivalente a usar el signo de igual (=) en la mayoría de los lenguajes de programación. En los diagramas o pseudocódigo se prefiere usar la flecha <- para asignaciones, dejando el doble igual == o el igual simple = estrictamente para hacer comparaciones (por ejemplo, preguntar si Mes_Actual == "Diciembre").

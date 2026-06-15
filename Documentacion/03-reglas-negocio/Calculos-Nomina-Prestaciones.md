@@ -1,12 +1,12 @@
 # Especificación de Cálculos de Nómina, Prestaciones y Aportes Patronales (v2)
 
-Este documento detalla el análisis de compatibilidad, las discrepancias resueltas con respecto a [Investigacion-R.md](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/Documentacion/Investigacion-R.md), y la implementación técnica de las tareas 4 y 5 del Sprint 3 ([Sprint.md](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/Documentacion/Sprint.md)) en el sistema de planillas de COMSERTEL.
+Este documento detalla el análisis de compatibilidad, las discrepancias resueltas con respecto a [Investigacion-R.md](), y la implementación técnica de las tareas 4 y 5 del Sprint 3 ([Sprint.md]()) en el sistema de planillas de COMSERTEL.
 
 ---
 
 ## 1. Análisis de Discrepancias y Compatibilidad con Investigacion-R.md
 
-Al contrastar la lógica de negocio previa con la investigación formal [Investigacion-R.md](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/Documentacion/Investigacion-R.md), se identificaron y resolvieron tres discrepancias fundamentales:
+Al contrastar la lógica de negocio previa con la investigación formal [Investigacion-R.md](), se identificaron y resolvieron tres discrepancias fundamentales:
 
 1. **Denominación y Techo del Aporte Patronal de Capacitación:**
    * **Discrepancia:** En la base de datos se mantiene el campo de columna heredado `insaforp_patrono` en `boletas_pago`. Sin embargo, legislativamente, la entidad ha sido sustituida por el **INCAF** (Instituto Nacional de Capacitación y Formación) según el Decreto Legislativo N.° 893.
@@ -18,7 +18,7 @@ Al contrastar la lógica de negocio previa con la investigación formal [Investi
 
 3. **Exención Legal de Cotizaciones en Aguinaldos:**
    * **Discrepancia:** El pseudocódigo escolar de la investigación realizaba el cálculo de ISSS y AFP aplicando el porcentaje sobre el `Salario_Nominal_Devengado` total (el cual sumaba el Aguinaldo). En El Salvador, por ley (Art. 144 del Código de Trabajo y Ley del SAP), el aguinaldo ordinario está exento de cotizaciones de seguridad social (ISSS, AFP) y Renta.
-   * **Resolución:** Para garantizar estricto cumplimiento legal, el servicio [v2_payrollService.js](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/backend/services/v2_payrollService.js) deduce el monto de aguinaldo del salario devengado para obtener la base cotizable de seguridad social (`salarioCotizableSeguridadSocial = salarioDevengado - aguinaldo`) antes de estimar el ISSS, la AFP y el INCAF. Lo mismo se aplica para el Impuesto sobre la Renta.
+   * **Resolución:** Para garantizar estricto cumplimiento legal, el servicio [v2_payrollService.js]() deduce el monto de aguinaldo del salario devengado para obtener la base cotizable de seguridad social (`salarioCotizableSeguridadSocial = salarioDevengado - aguinaldo`) antes de estimar el ISSS, la AFP y el INCAF. Lo mismo se aplica para el Impuesto sobre la Renta.
 
 ---
 
@@ -70,7 +70,7 @@ $$\text{Base Gravada} = \text{Salario Devengado} - \text{Aguinaldo} - \text{Quin
 
 ## 3. Pruebas y Certificación de Resultados
 
-Los algoritmos de cálculo fueron incorporados en el servicio principal [v2_payrollService.js](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/backend/services/v2_payrollService.js) y validados exhaustivamente mediante el script de pruebas unitarias [test_payroll.js](file:///home/bladimir/.gemini/antigravity-cli/brain/9d90c96d-8fd5-4af6-ac3e-c00fc6082f22/scratch/test_payroll.js). 
+Los algoritmos de cálculo fueron incorporados en el servicio principal [v2_payrollService.js]() y validados exhaustivamente mediante el script de pruebas unitarias [test_payroll.js](). 
 
 Las pruebas certificaron:
 1. Exactitud decimal en retenciones básicas de AFP, ISSS e ISR.
