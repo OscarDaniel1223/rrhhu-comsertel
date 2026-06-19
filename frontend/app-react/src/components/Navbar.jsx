@@ -9,7 +9,7 @@ import { ThemeContext } from "../providers/ThemeContext";
 
 export default function Navbar({ activeItem, handleItemClick }) {
   const [showMenu, setShowMenu] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const { user } = useAuth();

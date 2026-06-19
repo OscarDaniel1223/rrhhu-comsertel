@@ -842,6 +842,7 @@ const PlanillaGenerarTab = ({ onBack }) => {
 
     const [mesSeleccionado, setMesSeleccionado] = useState(opcionMesActual.valor);
     const [quincenaSeleccionada, setQuincenaSeleccionada] = useState('1'); // '1' o '2', solo se usa si tipoPeriodo === 'QUINCENAL'
+    const [esVoluntarioAceptado, setEsVoluntarioAceptado] = useState(true);
 
     const [empleados, setEmpleados] = useState([]);
     const [novedades, setNovedades] = useState({}); // { [id_empleado]: { beneficios: number, vacaciones: number } }
@@ -954,7 +955,8 @@ const PlanillaGenerarTab = ({ onBack }) => {
                 fecha_inicio: fechaInicio,
                 fecha_fin: fechaFin,
                 tipo_periodo: tipoPeriodo,
-                novedades: novedadesEnviar
+                novedades: novedadesEnviar,
+                esVoluntarioAceptado: esVoluntarioAceptado
             });
 
             if (response.status === 'success') {
@@ -1023,6 +1025,21 @@ const PlanillaGenerarTab = ({ onBack }) => {
                         </div>
                     )}
                 </div>
+
+                {mesSeleccionado === '2026-01' && (
+                    <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between">
+                        <div className="text-left">
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-white">Aplicar Quincena Veinticinco (Voluntario 2026)</h4>
+                            <p className="text-xs text-slate-400">Marque esta opción si la empresa aplicará de forma voluntaria el beneficio de la Quincena 25 en este período.</p>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={esVoluntarioAceptado}
+                            onChange={(e) => setEsVoluntarioAceptado(e.target.checked)}
+                            className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Listado de Novedades por Empleado */}

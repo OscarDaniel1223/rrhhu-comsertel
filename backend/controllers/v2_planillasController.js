@@ -129,7 +129,7 @@ const getPlanillaById = async (req, res) => {
 const generarPlanilla = async (req, res) => {
     const connection = await db.getConnection();
     try {
-        const { fecha_inicio, fecha_fin, tipo_periodo, novedades = [] } = req.body;
+        const { fecha_inicio, fecha_fin, tipo_periodo, novedades = [], esVoluntarioAceptado = true } = req.body;
 
         if (!fecha_inicio || !fecha_fin || !tipo_periodo) {
             connection.release();
@@ -299,7 +299,7 @@ const generarPlanilla = async (req, res) => {
                     salarioBase,
                     fecha_fin,
                     fechaIngreso,
-                    true, // esVoluntarioAceptado (por defecto verdadero para simulación)
+                    esVoluntarioAceptado, // esVoluntarioAceptado recibido de la peticion
                     false, // esSectorPublico (por defecto privado para Comsertel)
                     false // esFiniquito
                 );
@@ -307,16 +307,16 @@ const generarPlanilla = async (req, res) => {
                 console.error(`Error calculando Quincena Veinticinco para empleado ${id_empleado}:`, err);
             }
 
-            // Calcular Aguinaldo si aplica (Diciembre de ley en El Salvador)
+            // Calcular Aguinaldo si aplica (Rango legal permitido: entre el 20 de octubre y el 20 de diciembre de cada año)
             let aguinaldoVal = 0.0;
             try {
                 const fechaCorte = new Date(fecha_fin + 'T00:00:00');
-                if (fechaCorte.getMonth() === 11) { // 11 = Diciembre
-                    // En El Salvador, el aguinaldo se calcula en diciembre.
-                    // Si es quincenal, se suele calcular y pagar en la primera quincena (del 1 al 15 de diciembre).
-                    if (tipo_periodo === 'MENSUAL' || (tipo_periodo === 'QUINCENAL' && fechaCorte.getDate() <= 15)) {
-                        aguinaldoVal = V2_PayrollService.calcularAguinaldo(salarioBase, fechaIngreso, fecha_fin);
-                    }
+                const anioCorte = fechaCorte.getFullYear();
+                const inicioRango = new Date(`${anioCorte}-10-20T00:00:00`);
+                const finRango = new Date(`${anioCorte}-12-20T00:00:00`);
+
+                if (fechaCorte >= inicioRango && fechaCorte <= finRango) {
+                    aguinaldoVal = V2_PayrollService.calcularAguinaldo(salarioBase, fechaIngreso, fecha_fin);
                 }
             } catch (err) {
                 console.error(`Error calculando Aguinaldo para empleado ${id_empleado}:`, err);

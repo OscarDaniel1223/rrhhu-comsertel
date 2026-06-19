@@ -60,11 +60,19 @@ exports.createCargo = async (req, res) => {
     try {
         const { titulo, salario_base, id_departamento } = req.body;
         
-        if (!titulo || !salario_base || !id_departamento) {
+        if (!titulo || salario_base === undefined || !id_departamento) {
             return res.status(400).json({
                 status: 'error',
                 error: 'VALIDATION_ERROR',
                 message: 'Todos los campos son obligatorios'
+            });
+        }
+
+        if (Number(salario_base) < 365.00) {
+            return res.status(400).json({
+                status: 'error',
+                error: 'MINIMUM_WAGE_VIOLATION',
+                message: 'El salario base no puede ser menor al salario mínimo legal de $365.00 USD'
             });
         }
         
@@ -92,11 +100,19 @@ exports.updateCargo = async (req, res) => {
         const { id } = req.params;
         const { titulo, salario_base, id_departamento } = req.body;
         
-        if (!titulo || !salario_base || !id_departamento) {
+        if (!titulo || salario_base === undefined || !id_departamento) {
             return res.status(400).json({
                 status: 'error',
                 error: 'VALIDATION_ERROR',
                 message: 'Todos los campos son obligatorios'
+            });
+        }
+
+        if (Number(salario_base) < 365.00) {
+            return res.status(400).json({
+                status: 'error',
+                error: 'MINIMUM_WAGE_VIOLATION',
+                message: 'El salario base no puede ser menor al salario mínimo legal de $365.00 USD'
             });
         }
         

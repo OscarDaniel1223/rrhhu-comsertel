@@ -41,26 +41,26 @@ const createModal = ({
     // Estructuracion de botones segun tipo de dialogo
     const buttonsHTML = showCancel
       ? `
-        <button id="modal-cancel-btn" class="px-5 py-2 text-sm font-semibold rounded-xl transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${cancelColor}">
+        <button id="modal-cancel-btn" class="swal2-cancel px-5 py-2 text-sm font-semibold rounded-xl transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${cancelColor}">
           ${cancelText}
         </button>
-        <button id="modal-confirm-btn" class="px-5 py-2 text-sm font-semibold text-white rounded-xl transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${confirmColor}">
+        <button id="modal-confirm-btn" class="swal2-confirm px-5 py-2 text-sm font-semibold text-white rounded-xl transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${confirmColor}">
           ${confirmText}
         </button>
       `
       : `
-        <button id="modal-confirm-btn" class="px-5 py-2 text-sm font-semibold text-white rounded-xl transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 w-full ${confirmColor}">
+        <button id="modal-confirm-btn" class="swal2-confirm px-5 py-2 text-sm font-semibold text-white rounded-xl transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 w-full ${confirmColor}">
           ${confirmText}
         </button>
       `;
 
     overlay.innerHTML = `
-      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-300 opacity-0 flex flex-col p-6 gap-4">
+      <div class="swal2-popup bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full overflow-hidden transform scale-95 transition-all duration-300 opacity-0 flex flex-col p-6 gap-4">
         <div class="flex items-start gap-4">
           ${iconHTML}
           <div class="flex-1 min-w-0">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white truncate">${title}</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed break-words">${message}</p>
+            <h3 class="swal2-title text-lg font-bold text-slate-900 dark:text-white truncate">${title}</h3>
+            <p class="swal2-html-container mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed break-words">${message}</p>
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-2">

@@ -226,7 +226,15 @@ class V2_PayrollService {
    */
   static calcularAguinaldo(salarioBase, fechaIngreso, fechaCalculo = new Date()) {
     const fIngreso = parseFechaSinTimezone(fechaIngreso);
-    const fCalculo = parseFechaSinTimezone(fechaCalculo);
+    let fCalculo = parseFechaSinTimezone(fechaCalculo);
+
+    // Ajustar para tomar en cuenta la fecha de acreditacion al 20 de octubre en el calculo de antiguedad ordinario
+    const anioCalculo = fCalculo.getFullYear();
+    const fechaAcreditacion = new Date(anioCalculo, 9, 20); // 9 = Octubre (0-indexado)
+
+    if (fCalculo >= fechaAcreditacion) {
+      fCalculo = fechaAcreditacion;
+    }
 
     // Calcular antigüedad en días
     const diffTime = fCalculo.getTime() - fIngreso.getTime();
