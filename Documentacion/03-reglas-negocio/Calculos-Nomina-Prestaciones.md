@@ -28,18 +28,22 @@ A continuacion se presentan las formulas aplicadas en el backend (`v2_payrollSer
 ### 2.1 Salario Nominal Devengado
 Es la suma de todos los ingresos percibidos por el empleado en el periodo evaluado:
 
-$$\text{Salario Devengado} = \text{Salario Base Proporcional} + \text{Beneficios} + \text{Vacaciones} + \text{Aguinaldo} + \text{Quincena Veinticinco} - \text{Descuento por Ausencias}$$
+$$\text{Salario Devengado} = \text{Salario Base Proporcional} + \text{Beneficios} + \text{Vacaciones} + \text{Aguinaldo} + \text{Quincena Veinticinco} + \text{Horas Extras Diurnas} + \text{Horas Extras Nocturnas} + \text{Viaticos} - \text{Descuento por Ausencias}$$
 
 Donde:
 * **Salario Base Proporcional:** Equivale a $\text{Salario Base}$ en periodos mensuales, y a $\text{Salario Base} / 2.0$ en periodos quincenales.
+* **Horas Extras Diurnas y Nocturnas:** Montos monetarios devengados por horas extraordinarias laboradas en el periodo.
+* **Viaticos:** Monto asignado para el reembolso de gastos de viaje y operaciones.
 * **Descuento por Ausencias:** Calculado sobre las ausencias del tipo `AUSENCIA_INJUSTIFICADA` aprobadas en el periodo. Cada dia de ausencia injustificada descuenta la parte proporcional diaria del salario base mensual:
 $$\text{Descuento Diario} = \frac{\text{Salario Base Mensual}}{30.0}$$
 $$\text{Descuento Total} = \text{Dias de Ausencia} \times \text{Descuento Diario}$$
 
 ### 2.2 Base Cotizable de Seguridad Social (Base ISSS / AFP / INCAF)
-Las cotizaciones previsionales y de salud se calculan deduciendo los conceptos exentos del Salario Devengado:
+Las cotizaciones previsionales y de salud se calculan deduciendo los conceptos exentos (Aguinaldo, Quincena Veinticinco y Viaticos) del Salario Devengado total:
 
-$$\text{Base Cotizable} = \text{Salario Devengado} - \text{Aguinaldo} - \text{Quincena Veinticinco}$$
+$$\text{Base Cotizable} = \text{Salario Devengado} - \text{Aguinaldo} - \text{Quincena Veinticinco} - \text{Viaticos}$$
+
+*(Nota: Los viaticos representan reintegros de gastos y no constituyen salario previsional ni gravable de acuerdo con el Codigo de Trabajo. Por otro lado, los montos correspondientes a horas extras diurnas y nocturnas si son ingresos cotizables y gravables, por lo que no se deducen de la base cotizable).*
 
 Esta base se encuentra sujeta a los techos de cotizacion mensuales legales:
 * **Techo ISSS (Empleado y Patrono):** $1,000.00 USD mensuales ($500.00 USD quincenales).
@@ -152,6 +156,23 @@ $$\text{Vacacion Proporcional} = \text{Dias de Vacacion Proporcionales} \times \
 * **Periodo de Pago Ordinario:** Se paga anualmente entre el 15 y el 25 de enero.
 * **Vigencia en Sector Privado:** Año 2026 de adopcion voluntaria por la empresa (configurable mediante switch en frontend). Año 2027 en adelante de caracter obligatorio.
 * **Calculo Proporcional en Liquidaciones (Finiquito):** Si ocurre un despido injustificado antes del 25 de enero, se paga la proporcion acumulada de los dias trabajados con base al monto total de la prestacion.
+
+### 3.4 Horas Extras Diurnas y Nocturnas (Art. 169 y 170 Codigo de Trabajo)
+El calculo de la remuneracion por jornada extraordinaria se computa en base al valor de la hora ordinaria de trabajo diurno del empleado, adicionando los recargos legales correspondientes:
+* **Valor de la Hora Ordinaria Diurna**: Obtenida dividiendo el salario base mensual entre 30 dias y luego entre las 8 horas de la jornada legal:
+  $$\text{Valor Hora Ordinaria} = \frac{\text{Salario Base Mensual}}{240.0}$$
+* **Horas Extras Diurnas (HED)**: De acuerdo al Art. 169, se pagan con un recargo del 100% (pago doble):
+  $$\text{Valor Hora Extra Diurna} = \text{Valor Hora Ordinaria} \times 2 = \frac{\text{Salario Base Mensual}}{120.0}$$
+  $$\text{Monto HED} = \text{Cantidad de Horas Extras Diurnas} \times \frac{\text{Salario Base Mensual}}{120.0}$$
+* **Horas Extras Nocturnas (HEN)**: De acuerdo al Art. 168 y 170, la jornada nocturna ordinaria tiene un recargo del 25% sobre la diurna ordinaria, y las horas extraordinarias nocturnas se pagan con un recargo del 100% sobre el valor de la hora nocturna ordinaria (es decir, pago doble con el recargo incluido):
+  $$\text{Valor Hora Ordinaria Nocturna} = \text{Valor Hora Ordinaria} \times 1.25 = \frac{\text{Salario Base Mensual}}{240.0} \times 1.25$$
+  $$\text{Valor Hora Extra Nocturna} = \text{Valor Hora Ordinaria Nocturna} \times 2 = \frac{\text{Salario Base Mensual}}{96.0}$$
+  $$\text{Monto HEN} = \text{Cantidad de Horas Extras Nocturnas} \times \frac{\text{Salario Base Mensual}}{96.0}$$
+
+> [!NOTE]
+> **Calculo Automatico y Entrada de Datos en el Frontend:**
+> A partir de la implementacion del Sprint 5 (Tarea 29), el administrador ya no digita montos monetarios en dolares para las horas extras. En su lugar, el sistema solicita la **cantidad de horas** trabajadas.
+> Al introducir las horas en los campos correspondientes del formulario de novedades, la interfaz de usuario estima y despliega de manera interactiva el costo financiero en dolares en tiempo real. Al procesar el formulario, el sistema realiza la conversion aritmetica exacta y envia los montos calculados al backend de manera transparente para persistirlos.
 
 ---
 

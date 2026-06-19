@@ -24,3 +24,8 @@ export const deleteEmpleado = async (id) => {
     const response = await v2_api.delete(`/empleados/${id}`);
     return response.data;
 };
+
+export const programarVacacion = async (id, mesVacaciones) => {
+    const response = await v2_api.put(`/empleados/${id}/vacacion-mes`, { mes_vacaciones: mesVacaciones });
+    return response.data;
+};

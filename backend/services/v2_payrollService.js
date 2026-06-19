@@ -194,20 +194,21 @@ class V2_PayrollService {
 
   /**
    * Calcula la prima de vacaciones ordinaria o proporcional (Art. 177 Código de Trabajo de El Salvador).
-   * La vacación completa equivale a 15 días de salario base más una prima del 30% sobre esos 15 días.
    * @param {number} salarioBase Salario mensual base del cargo.
+   * @param {Date|string} fechaIngreso Fecha de ingreso del empleado.
+   * @param {Date|string} fechaCalculo Fecha de cálculo de la planilla (fin del período).
    * @param {boolean} cumpleAnioContinuo Si el empleado ha completado un año continuo de servicio.
    * @param {number} diasTrabajadosEnAnio Días laborados en el año de servicio actual (opcional para proporcional).
    * @returns {number} Monto a pagar por vacaciones.
    */
-  static calcularVacaciones(salarioBase, cumpleAnioContinuo, diasTrabajadosEnAnio = 365) {
+  static calcularVacaciones(salarioBase, fechaIngreso, fechaCalculo = new Date(), cumpleAnioContinuo = true, diasTrabajadosEnAnio = 365) {
     if (cumpleAnioContinuo) {
       // 15 días de salario + 30% de prima
       const pagoVacacion = (salarioBase / 2.0) * 1.30;
       return Math.round(pagoVacacion * 100) / 100;
     }
     
-    // Proporcional
+    // Proporcional estándar
     if (diasTrabajadosEnAnio > 0 && diasTrabajadosEnAnio < 365) {
       const diasProporcionales = (diasTrabajadosEnAnio / 365.0) * 15.0;
       const pagoVacacionProporcional = diasProporcionales * (salarioBase / 30.0) * 1.30;
@@ -283,13 +284,15 @@ class V2_PayrollService {
     fechaIngreso,
     esVoluntarioAceptado = true,
     esSectorPublico = false,
-    esFiniquito = false
+    esFiniquito = false,
+    fechaPagoQ25 = null
   ) {
     if (salarioBase > 1500.00) {
       return 0.00;
     }
 
-    const fCalculo = parseFechaSinTimezone(fechaCalculo);
+    // Utiliza la fechaPagoQ25 si se proporciona, de lo contrario la fecha fin del periodo (fechaCalculo)
+    const fCalculo = parseFechaSinTimezone(fechaPagoQ25 || fechaCalculo);
     const fIngreso = parseFechaSinTimezone(fechaIngreso);
     const anio = fCalculo.getFullYear();
     const mes = fCalculo.getMonth(); // 0 = Enero
@@ -365,7 +368,10 @@ class V2_PayrollService {
     totalEmpleadosEmpresa = 10,
     quincenaVeinticinco = 0.0,
     esSectorAgropecuario = false,
-    esTemporalAgricola = false
+    esTemporalAgricola = false,
+    viaticos = 0.0,
+    horasExtrasDiurnas = 0.0,
+    horasExtrasNocturnas = 0.0
   ) {
     const periodo = tipoPeriodo.toUpperCase();
     
@@ -376,12 +382,12 @@ class V2_PayrollService {
     // Calcular ausencias
     const { diasAusencia, descuento } = this.calcularDescuentoAusencias(salarioBase, ausencias, fechaInicio, fechaFin);
 
-    // Salario Nominal Devengado (sumando beneficios, vacaciones, aguinaldo, quincena veinticinco y restando ausencias)
-    const salarioDevengado = Math.max(0.00, salarioBasePeriodo + beneficios + vacaciones + aguinaldo + quincenaVeinticinco - descuento);
+    // Salario Nominal Devengado (sumando beneficios, vacaciones, aguinaldo, quincena veinticinco, horas extras diurnas, horas extras nocturnas, viaticos y restando ausencias)
+    const salarioDevengado = Math.max(0.00, salarioBasePeriodo + beneficios + vacaciones + aguinaldo + quincenaVeinticinco + horasExtrasDiurnas + horasExtrasNocturnas + viaticos - descuento);
 
-    // Para efectos de ISSS y AFP, por ley de El Salvador el Aguinaldo ordinario y la Quincena Veinticinco estan exentos de cotizaciones.
+    // Para efectos de ISSS y AFP, por ley de El Salvador el Aguinaldo ordinario, la Quincena Veinticinco y los Viaticos estan exentos de cotizaciones.
     // Calculamos el salario cotizable restando ambos del devengado:
-    const salarioCotizableSeguridadSocial = Math.max(0.00, salarioDevengado - aguinaldo - quincenaVeinticinco);
+    const salarioCotizableSeguridadSocial = Math.max(0.00, salarioDevengado - aguinaldo - quincenaVeinticinco - viaticos);
 
     // Deducciones empleado y aportes patronales basadas en el salario cotizable de seguridad social
     const afp = this.calcularAFP(salarioCotizableSeguridadSocial);
@@ -395,8 +401,8 @@ class V2_PayrollService {
     }
 
     // Retencion de Renta (ISR 2025)
-    // Dado que el aguinaldo ordinario y la quincena veinticinco estan exentos por ley de El Salvador, calculamos el ISR sobre la renta gravada sin ellos:
-    const salarioParaRenta = Math.max(0.00, salarioDevengado - aguinaldo - quincenaVeinticinco);
+    // Dado que el aguinaldo ordinario, la quincena veinticinco y los viaticos estan exentos por ley de El Salvador, calculamos el ISR sobre la renta gravada sin ellos:
+    const salarioParaRenta = Math.max(0.00, salarioDevengado - aguinaldo - quincenaVeinticinco - viaticos);
     const renta = this.calcularISR(salarioParaRenta, afp.empleado, isss.empleado, periodo);
 
     // Salario Neto (Liquido a recibir)
@@ -418,7 +424,10 @@ class V2_PayrollService {
       afp_patrono: afp.patrono,
       incaf_patrono: incafPatrono, // Campo oficial segun Decreto N.° 893
       insaforp_patrono: incafPatrono, // Mantiene el nombre de columna de BD 'insaforp_patrono' para compatibilidad retroactiva
-      quincena_veinticinco: Math.round(quincenaVeinticinco * 100) / 100
+      quincena_veinticinco: Math.round(quincenaVeinticinco * 100) / 100,
+      viaticos: Math.round(viaticos * 100) / 100,
+      horas_extras_diurnas: Math.round(horasExtrasDiurnas * 100) / 100,
+      horas_extras_nocturnas: Math.round(horasExtrasNocturnas * 100) / 100
     };
   }
 }

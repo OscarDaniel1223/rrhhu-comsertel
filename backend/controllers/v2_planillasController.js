@@ -130,7 +130,7 @@ const getPlanillaById = async (req, res) => {
 const generarPlanilla = async (req, res) => {
     const connection = await db.getConnection();
     try {
-        const { fecha_inicio, fecha_fin, tipo_periodo, novedades = [], esVoluntarioAceptado = true } = req.body;
+        const { fecha_inicio, fecha_fin, tipo_periodo, novedades = [], esVoluntarioAceptado = true, fechaPagoQ25 } = req.body;
 
         if (!fecha_inicio || !fecha_fin || !tipo_periodo) {
             connection.release();
@@ -246,7 +246,7 @@ const generarPlanilla = async (req, res) => {
 
         // 2. Obtener los empleados activos
         const [empleados] = await connection.query(
-            `SELECT e.id, e.fecha_ingreso, c.salario_base 
+            `SELECT e.id, e.fecha_ingreso, e.mes_vacaciones, c.salario_base 
              FROM empleados e
              JOIN cargos c ON e.id_cargo = c.id
              WHERE e.estado = 'ACTIVO'`
@@ -269,7 +269,10 @@ const generarPlanilla = async (req, res) => {
         novedades.forEach(nov => {
             novedadesMap.set(Number(nov.id_empleado), {
                 beneficios: Number(nov.beneficios || 0.0),
-                vacaciones: Number(nov.vacaciones || 0.0)
+                vacaciones: Number(nov.vacaciones || 0.0),
+                viaticos: Number(nov.viaticos || 0.0),
+                horas_extras_diurnas: Number(nov.horas_extras_diurnas || 0.0),
+                horas_extras_nocturnas: Number(nov.horas_extras_nocturnas || 0.0)
             });
         });
 
@@ -293,7 +296,13 @@ const generarPlanilla = async (req, res) => {
             );
 
             // Obtener beneficios o vacaciones programadas
-            const nov = novedadesMap.get(id_empleado) || { beneficios: 0.0, vacaciones: 0.0 };
+            const nov = novedadesMap.get(id_empleado) || {
+                beneficios: 0.0,
+                vacaciones: 0.0,
+                viaticos: 0.0,
+                horas_extras_diurnas: 0.0,
+                horas_extras_nocturnas: 0.0
+            };
 
             // Calcular Quincena Veinticinco si aplica (Enero 2026 en adelante)
             let quincenaVeinticincoVal = 0.0;
@@ -304,7 +313,8 @@ const generarPlanilla = async (req, res) => {
                     fechaIngreso,
                     esVoluntarioAceptado, // esVoluntarioAceptado recibido de la peticion
                     false, // esSectorPublico (por defecto privado para Comsertel)
-                    false // esFiniquito
+                    false, // esFiniquito
+                    fechaPagoQ25 // fechaPagoQ25 recibida del body
                 );
             } catch (err) {
                 console.error(`Error calculando Quincena Veinticinco para empleado ${id_empleado}:`, err);
@@ -325,20 +335,39 @@ const generarPlanilla = async (req, res) => {
                 console.error(`Error calculando Aguinaldo para empleado ${id_empleado}:`, err);
             }
 
+            // Calcular Vacaciones si el mes de la planilla coincide con el mes conciliado de goce
+            let vacacionesVal = 0.0;
+            if (empleado.mes_vacaciones !== null && empleado.mes_vacaciones === mesPlanilla) {
+                try {
+                    vacacionesVal = V2_PayrollService.calcularVacaciones(
+                        salarioBase,
+                        fechaIngreso,
+                        fecha_fin,
+                        true // cumpleAnioContinuo
+                    );
+                } catch (err) {
+                    console.error(`Error calculando Vacaciones para empleado ${id_empleado}:`, err);
+                    vacacionesVal = 0.0;
+                }
+            }
+
             // Ejecutar el motor de cálculo de boleta de pago
             const boletaDesglose = V2_PayrollService.calcularBoletaPago(
                 salarioBase,
                 ausencias,
                 nov.beneficios,
                 aguinaldoVal,
-                nov.vacaciones,
+                vacacionesVal,
                 tipo_periodo,
                 fecha_inicio,
                 fecha_fin,
                 totalEmpleadosEmpresa,
                 quincenaVeinticincoVal,
                 false, // esSectorAgropecuario
-                false // esTemporalAgricola
+                false, // esTemporalAgricola
+                nov.viaticos,
+                nov.horas_extras_diurnas,
+                nov.horas_extras_nocturnas
             );
 
             // Guardar en la base de datos la boleta de pago consolidada
@@ -347,8 +376,9 @@ const generarPlanilla = async (req, res) => {
                     id_planilla, id_empleado, dias_trabajados, salario_devengado,
                     isss_empleado, afp_empleado, renta, salario_neto,
                     isss_patrono, afp_patrono, incaf_patrono,
-                    beneficios, vacaciones, aguinaldo, quincena_veinticinco
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    beneficios, vacaciones, aguinaldo, quincena_veinticinco,
+                    viaticos, horas_extras_diurnas, horas_extras_nocturnas
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     id_planilla,
                     id_empleado,
@@ -362,9 +392,12 @@ const generarPlanilla = async (req, res) => {
                     boletaDesglose.afp_patrono,
                     boletaDesglose.incaf_patrono,
                     nov.beneficios,
-                    nov.vacaciones,
+                    vacacionesVal,
                     aguinaldoVal,
-                    quincenaVeinticincoVal
+                    quincenaVeinticincoVal,
+                    boletaDesglose.viaticos,
+                    boletaDesglose.horas_extras_diurnas,
+                    boletaDesglose.horas_extras_nocturnas
                 ]
             );
         }

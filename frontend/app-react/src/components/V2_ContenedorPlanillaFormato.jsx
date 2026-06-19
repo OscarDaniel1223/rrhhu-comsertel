@@ -103,7 +103,7 @@ export default function V2_ContenedorPlanillaFormato() {
             'Sueldo-Salario', 'Viaticos', 'Mes que ingreso a la empresa', 'Tiempo en la empresa (años)',
             'Horas extras diurnas', 'Horas extras nocturnas', 'Monto de vacaciones', 'Bonificacion de vacaciones',
             'Monto del aguinaldo', 'Quincena Veinticinco', 'Monto cotizables para cotizaciones',
-            'ISSS Patronal', 'AFP Patronal', 'INCAF', 'ISSS Empleado', 'AFP Empleado', 'Impuesto sobre la Renta (ISR)',
+            'ISSS Patronal', 'AFP Patronal', 'ISSS Empleado', 'AFP Empleado', 'Impuesto sobre la Renta (ISR)',
             'Monto a depositar al empleado', 'Monto a depositar planilla unica'
         ];
 
@@ -127,7 +127,6 @@ export default function V2_ContenedorPlanillaFormato() {
                 b.montoCotizable,
                 b.isssPatronal,
                 b.afpPatronal,
-                b.incafPatronal,
                 b.isssEmpleado,
                 b.afpEmpleado,
                 b.isrEmpleado,
@@ -153,7 +152,7 @@ export default function V2_ContenedorPlanillaFormato() {
             totals.sueldoSalario, totals.viaticos, '', '',
             totals.horasExtrasDiurnas, totals.horasExtrasNocturnas, totals.montoVacaciones, totals.boniVacaciones,
             totals.aguinaldo, totals.quincenaVeinticinco, totals.montoCotizable,
-            totals.isssPatronal, totals.afpPatronal, totals.incafPatronal, totals.isssEmpleado, totals.afpEmpleado, totals.isrEmpleado,
+            totals.isssPatronal, totals.afpPatronal, totals.isssEmpleado, totals.afpEmpleado, totals.isrEmpleado,
             totals.montoDepositarEmpleado, totals.montoPlanillaUnica
         ];
 
@@ -185,19 +184,21 @@ export default function V2_ContenedorPlanillaFormato() {
             if (fechaIngresoDate && fechaFinPlanillaDate) {
                 const diffTime = fechaFinPlanillaDate.getTime() - fechaIngresoDate.getTime();
                 if (diffTime > 0) {
-                    tiempoAnios = diffTime / (1000 * 60 * 60 * 24 * 365.25);
+                    tiempoAnios = Math.round((diffTime / (1000 * 60 * 60 * 24 * 365.25)) * 100) / 100;
                 }
             }
-
-            // Desglose de Vacaciones
-            // El backend guarda en 'vacaciones' el total (salario/2 * 1.30).
-            // Lo dividimos: montoVacaciones (salario/2) y boniVacaciones (salario/2 * 0.30)
-            const vacacionesTotal = parseFloat(b.vacaciones) || 0.0;
-            const montoVacaciones = vacacionesTotal / 1.30;
-            const boniVacaciones = montoVacaciones * 0.30;
-
             // Salario Base Nominal
             const sueldoSalario = parseFloat(b.salario_base) || 0.0;
+
+            // Desglose de Vacaciones
+            const vacacionesTotal = parseFloat(b.vacaciones) || 0.0;
+            let montoVacaciones = 0.0;
+            let boniVacaciones = 0.0;
+            
+            if (vacacionesTotal > 0) {
+                montoVacaciones = vacacionesTotal / 1.30;
+                boniVacaciones = montoVacaciones * 0.30;
+            }
 
             // Monto Cotizable
             // En El Salvador es el salario base ordinario devengado más vacaciones pagadas (y otros beneficios ordinarios, menos ausencias).
@@ -227,11 +228,11 @@ export default function V2_ContenedorPlanillaFormato() {
                 fechaIngresoFormato: formatFechaLocal(b.fecha_ingreso),
                 fechaCorteFormato: formatFechaLocal(detalle.planilla.fecha_fin),
                 sueldoSalario: sueldoSalario,
-                viaticos: 0.00, // No implementado en BD, por defecto 0
-                mesIngreso: fechaIngresoDate ? NOMBRES_MESES[fechaIngresoDate.getMonth()] : '',
-                tiempoEmpresaAnios: parseFloat(tiempoAnios.toFixed(2)),
-                horasExtrasDiurnas: 0.00, // No implementado en BD, por defecto 0
-                horasExtrasNocturnas: 0.00, // No implementado en BD, por defecto 0
+                viaticos: parseFloat(b.viaticos) || 0.00,
+                mesIngreso: fechaIngresoDate ? String(fechaIngresoDate.getMonth() + 1) : '',
+                tiempoEmpresaAnios: tiempoAnios,
+                horasExtrasDiurnas: parseFloat(b.horas_extras_diurnas) || 0.00,
+                horasExtrasNocturnas: parseFloat(b.horas_extras_nocturnas) || 0.00,
                 montoVacaciones: parseFloat(montoVacaciones.toFixed(2)),
                 boniVacaciones: parseFloat(boniVacaciones.toFixed(2)),
                 aguinaldo: aguinaldo,
@@ -524,14 +525,14 @@ export default function V2_ContenedorPlanillaFormato() {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-[11px] text-left border-collapse print-table">
                                         <thead>
-                                            <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                            <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-0 bg-slate-50 dark:bg-slate-900 z-10">N°</th>
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-8 bg-slate-50 dark:bg-slate-900 z-10">Colaborador</th>
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50">Area</th>
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50">Puesto</th>
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50">Ingreso</th>
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50">Corte Planilla</th>
-                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 bg-blue-50/20 dark:bg-blue-900/10">Sueldo-Salario</th>
+                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">Sueldo-Salario</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">Viaticos</th>
                                                 <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50">Mes Ingreso</th>
                                                 <th className="py-3 px-4 text-center border-r border-slate-100 dark:border-slate-800/50">Tiempo (años)</th>
@@ -541,75 +542,72 @@ export default function V2_ContenedorPlanillaFormato() {
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">Boni Vac.</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">Aguinaldo</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">Quincena 25</th>
-                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-bold bg-slate-100/50 dark:bg-slate-800/30">Monto Cotizable</th>
+                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-bold">Monto Cotizable</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">ISSS Patr.</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">AFP Patr.</th>
-                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 text-indigo-600 dark:text-indigo-400">INCAF</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">ISSS Emp.</th>
                                                 <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">AFP Emp.</th>
-                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 text-amber-600 dark:text-amber-400">ISR (Renta)</th>
-                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-bold bg-emerald-50/20 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400">Neto a Depositar</th>
-                                                <th className="py-3 px-4 text-right font-bold bg-purple-50/20 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400">Planilla Unica</th>
+                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50">ISR (Renta)</th>
+                                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-bold">Neto a Depositar</th>
+                                                <th className="py-3 px-4 text-right font-bold">Planilla Unica</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium text-slate-800 dark:text-slate-200">
                                             {filteredBoletas.map((b, idx) => (
                                                 <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                                     <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-0 bg-white dark:bg-slate-900 font-bold z-10">{idx + 1}</td>
-                                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-8 bg-white dark:bg-slate-900 font-bold text-slate-800 dark:text-white z-10 whitespace-nowrap">
+                                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-8 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white z-10 whitespace-nowrap">
                                                         {b.nombres} {b.apellidos}
                                                     </td>
                                                     <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.area}</td>
                                                     <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.cargo}</td>
                                                     <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.fechaIngresoFormato}</td>
                                                     <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.fechaCorteFormato}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-medium bg-blue-50/10 dark:bg-blue-900/5">{formatMoneda(b.sueldoSalario)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-slate-400 dark:text-slate-500">{formatMoneda(b.viaticos)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.sueldoSalario)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.viaticos)}</td>
                                                     <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 text-center">{b.mesIngreso}</td>
                                                     <td className="py-3 px-4 text-center border-r border-slate-100 dark:border-slate-800/50 font-mono">{b.tiempoEmpresaAnios}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-slate-400 dark:text-slate-500">{formatMoneda(b.horasExtrasDiurnas)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-slate-400 dark:text-slate-500">{formatMoneda(b.horasExtrasNocturnas)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.horasExtrasDiurnas)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.horasExtrasNocturnas)}</td>
                                                     <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.montoVacaciones)}</td>
                                                     <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.boniVacaciones)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-slate-600 dark:text-slate-400">{formatMoneda(b.aguinaldo)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-blue-600 dark:text-blue-400">{formatMoneda(b.quincenaVeinticinco)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold bg-slate-100/30 dark:bg-slate-800/20">{formatMoneda(b.montoCotizable)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-slate-600 dark:text-slate-400">{formatMoneda(b.isssPatronal)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-slate-600 dark:text-slate-400">{formatMoneda(b.afpPatronal)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-indigo-600 dark:text-indigo-400">{formatMoneda(b.incafPatronal)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-red-500/80">-{formatMoneda(b.isssEmpleado)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-red-500/80">-{formatMoneda(b.afpEmpleado)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono text-amber-600/90 dark:text-amber-500/90">-{formatMoneda(b.isrEmpleado)}</td>
-                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold bg-emerald-50/10 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-500">{formatMoneda(b.montoDepositarEmpleado)}</td>
-                                                    <td className="py-3 px-4 text-right font-mono font-bold bg-purple-50/10 dark:bg-purple-950/10 text-purple-600 dark:text-purple-400">{formatMoneda(b.montoPlanillaUnica)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.aguinaldo)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.quincenaVeinticinco)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold">{formatMoneda(b.montoCotizable)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.isssPatronal)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.afpPatronal)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">-{formatMoneda(b.isssEmpleado)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">-{formatMoneda(b.afpEmpleado)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">-{formatMoneda(b.isrEmpleado)}</td>
+                                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold">{formatMoneda(b.montoDepositarEmpleado)}</td>
+                                                    <td className="py-3 px-4 text-right font-mono font-bold">{formatMoneda(b.montoPlanillaUnica)}</td>
                                                 </tr>
                                             ))}
 
                                             {/* Fila de Totales Generales */}
                                             <tr className="bg-slate-100/80 dark:bg-slate-800/60 font-bold text-slate-900 dark:text-white border-t-2 border-slate-300 dark:border-slate-700">
                                                 <td className="py-3 px-4 sticky left-0 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-10"></td>
-                                                <td className="py-3 px-4 sticky left-8 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-10 whitespace-nowrap">
+                                                <td className="py-3 px-4 sticky left-8 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-10 whitespace-nowrap font-bold">
                                                     TOTAL PLANILLA
                                                 </td>
                                                 <td className="py-3 px-4 border-r border-slate-200 dark:border-slate-700" colSpan="4"></td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono">{formatMoneda(totals.sueldoSalario)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-slate-400">{formatMoneda(totals.viaticos)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.sueldoSalario)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.viaticos)}</td>
                                                 <td className="py-3 px-4 border-r border-slate-200 dark:border-slate-700" colSpan="2"></td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-slate-400">{formatMoneda(totals.horasExtrasDiurnas)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-slate-400">{formatMoneda(totals.horasExtrasNocturnas)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono">{formatMoneda(totals.montoVacaciones)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono">{formatMoneda(totals.boniVacaciones)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono">{formatMoneda(totals.aguinaldo)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-blue-600 dark:text-blue-400">{formatMoneda(totals.quincenaVeinticinco)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono bg-slate-200/50 dark:bg-slate-700/30">{formatMoneda(totals.montoCotizable)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono">{formatMoneda(totals.isssPatronal)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono">{formatMoneda(totals.afpPatronal)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-indigo-600 dark:text-indigo-400">{formatMoneda(totals.incafPatronal)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-red-500">-{formatMoneda(totals.isssEmpleado)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-red-500">-{formatMoneda(totals.afpEmpleado)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-amber-600 dark:text-amber-500">-{formatMoneda(totals.isrEmpleado)}</td>
-                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono text-emerald-600 dark:text-emerald-500">{formatMoneda(totals.montoDepositarEmpleado)}</td>
-                                                <td className="py-3 px-4 text-right font-mono text-purple-600 dark:text-purple-400">{formatMoneda(totals.montoPlanillaUnica)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.horasExtrasDiurnas)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.horasExtrasNocturnas)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.montoVacaciones)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.boniVacaciones)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.aguinaldo)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.quincenaVeinticinco)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.montoCotizable)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.isssPatronal)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.afpPatronal)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">-{formatMoneda(totals.isssEmpleado)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">-{formatMoneda(totals.afpEmpleado)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">-{formatMoneda(totals.isrEmpleado)}</td>
+                                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold text-emerald-800 dark:text-emerald-400">{formatMoneda(totals.montoDepositarEmpleado)}</td>
+                                                <td className="py-3 px-4 text-right font-mono font-bold text-red-800 dark:text-red-400">{formatMoneda(totals.montoPlanillaUnica)}</td>
                                             </tr>
                                         </tbody>
                                     </table>

@@ -849,6 +849,15 @@ const PlanillaGenerarTab = ({ onBack }) => {
     const [mesSeleccionado, setMesSeleccionado] = useState(opcionMesActual.valor);
     const [quincenaSeleccionada, setQuincenaSeleccionada] = useState('1'); // '1' o '2', solo se usa si tipoPeriodo === 'QUINCENAL'
     const [esVoluntarioAceptado, setEsVoluntarioAceptado] = useState(true);
+    const [fechaPagoQ25, setFechaPagoQ25] = useState('');
+
+    useEffect(() => {
+        if (mesSeleccionado === '2026-01') {
+            setFechaPagoQ25('2026-01-25');
+        } else {
+            setFechaPagoQ25('');
+        }
+    }, [mesSeleccionado]);
 
     const [empleados, setEmpleados] = useState([]);
     const [novedades, setNovedades] = useState({}); // { [id_empleado]: { beneficios: number, vacaciones: number } }
@@ -898,7 +907,13 @@ const PlanillaGenerarTab = ({ onBack }) => {
                     // Inicializar novedades
                     const initNov = {};
                     activos.forEach(e => {
-                        initNov[e.id] = { beneficios: '', vacaciones: '' };
+                        initNov[e.id] = { 
+                            beneficios: '', 
+                            vacaciones: '', 
+                            viaticos: '', 
+                            horas_extras_diurnas_qty: '', 
+                            horas_extras_nocturnas_qty: '' 
+                        };
                     });
                     setNovedades(initNov);
                 }
@@ -916,6 +931,41 @@ const PlanillaGenerarTab = ({ onBack }) => {
 
         fetchEmpleadosActivos();
     }, []);
+
+    useEffect(() => {
+        if (empleados.length === 0) return;
+        
+        let mesInt = 0;
+        if (mesSeleccionado) {
+            const partes = mesSeleccionado.split('-');
+            if (partes.length === 2) {
+                mesInt = parseInt(partes[1], 10);
+            } else {
+                mesInt = parseInt(mesSeleccionado, 10);
+            }
+        }
+        
+        setNovedades(prev => {
+            const updated = { ...prev };
+            empleados.forEach(emp => {
+                const cumpleMes = emp.mes_vacaciones !== null && emp.mes_vacaciones === mesInt;
+                const autoVal = cumpleMes 
+                    ? Math.round(((parseFloat(emp.salario_base) / 2.0) * 1.30) * 100) / 100
+                    : 0.00;
+                
+                updated[emp.id] = {
+                    ...(updated[emp.id] || {
+                        beneficios: '',
+                        viaticos: '',
+                        horas_extras_diurnas_qty: '',
+                        horas_extras_nocturnas_qty: ''
+                    }),
+                    vacaciones: autoVal > 0 ? autoVal : ''
+                };
+            });
+            return updated;
+        });
+    }, [mesSeleccionado, empleados]);
 
     const handleNovedadChange = (empleadoId, campo, valor) => {
         setNovedades(prev => ({
@@ -942,18 +992,55 @@ const PlanillaGenerarTab = ({ onBack }) => {
         // Formatear novedades para enviar al backend
         const novedadesEnviar = Object.keys(novedades)
             .map(empId => {
+                const emp = empleados.find(e => e.id === Number(empId));
+                const salarioBase = emp ? parseFloat(emp.salario_base) : 0.0;
+
                 const ben = parseFloat(novedades[empId].beneficios) || 0.0;
                 const vac = parseFloat(novedades[empId].vacaciones) || 0.0;
-                if (ben > 0 || vac > 0) {
+                const via = parseFloat(novedades[empId].viaticos) || 0.0;
+
+                // Calculo automatico de horas extras en dolares
+                const hedQty = parseFloat(novedades[empId].horas_extras_diurnas_qty) || 0.0;
+                const hedMonto = Math.round((hedQty * (salarioBase / 120.0)) * 100) / 100;
+
+                const henQty = parseFloat(novedades[empId].horas_extras_nocturnas_qty) || 0.0;
+                const henMonto = Math.round((henQty * (salarioBase / 96.0)) * 100) / 100;
+
+                if (ben > 0 || vac > 0 || via > 0 || hedMonto > 0 || henMonto > 0) {
                     return {
                         id_empleado: Number(empId),
                         beneficios: ben,
-                        vacaciones: vac
+                        vacaciones: vac,
+                        viaticos: via,
+                        horas_extras_diurnas: hedMonto,
+                        horas_extras_nocturnas: henMonto
                     };
                 }
                 return null;
             })
             .filter(n => n !== null);
+
+        if (mesSeleccionado === '2026-01' && esVoluntarioAceptado) {
+            if (!fechaPagoQ25) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fecha requerida',
+                    text: 'Debe ingresar la fecha de pago efectiva para la Quincena Veinticinco.'
+                });
+                return;
+            }
+            const fechaPago = new Date(fechaPagoQ25 + 'T00:00:00');
+            const minDate = new Date('2026-01-15T00:00:00');
+            const maxDate = new Date('2026-01-25T00:00:00');
+            if (fechaPago < minDate || fechaPago > maxDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fecha inválida',
+                    text: 'La fecha de pago efectiva de la Quincena Veinticinco debe estar entre el 15 y el 25 de enero.'
+                });
+                return;
+            }
+        }
 
         setLoading(true);
         try {
@@ -962,7 +1049,8 @@ const PlanillaGenerarTab = ({ onBack }) => {
                 fecha_fin: fechaFin,
                 tipo_periodo: tipoPeriodo,
                 novedades: novedadesEnviar,
-                esVoluntarioAceptado: esVoluntarioAceptado
+                esVoluntarioAceptado: esVoluntarioAceptado,
+                fechaPagoQ25: fechaPagoQ25 || null
             });
 
             if (response.status === 'success') {
@@ -1034,17 +1122,43 @@ const PlanillaGenerarTab = ({ onBack }) => {
                 </div>
 
                 {mesSeleccionado === '2026-01' && (
-                    <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between">
-                        <div className="text-left">
-                            <h4 className="text-sm font-bold text-slate-800 dark:text-white">Aplicar Quincena Veinticinco (Voluntario 2026)</h4>
-                            <p className="text-xs text-slate-400">Marque esta opción si la empresa aplicará de forma voluntaria el beneficio de la Quincena 25 en este período.</p>
+                    <div className="mt-4 p-5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="text-left">
+                                <h4 className="text-sm font-bold text-slate-800 dark:text-white">Aplicar Quincena Veinticinco (Voluntario 2026)</h4>
+                                <p className="text-xs text-slate-400">Marque esta opción si la empresa aplicará de forma voluntaria el beneficio de la Quincena 25 en este período.</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={esVoluntarioAceptado}
+                                onChange={(e) => setEsVoluntarioAceptado(e.target.checked)}
+                                className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
+                            />
                         </div>
-                        <input
-                            type="checkbox"
-                            checked={esVoluntarioAceptado}
-                            onChange={(e) => setEsVoluntarioAceptado(e.target.checked)}
-                            className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-600 cursor-pointer"
-                        />
+
+                        {esVoluntarioAceptado && (
+                            <div className="flex flex-col gap-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 text-left">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        Fecha de Pago Efectiva (Obligatorio 15 - 25 de Enero):
+                                    </label>
+                                    <input
+                                        type="date"
+                                        min="2026-01-15"
+                                        max="2026-01-25"
+                                        value={fechaPagoQ25}
+                                        onChange={(e) => setFechaPagoQ25(e.target.value)}
+                                        className="bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-600 w-full sm:w-48 text-slate-800 dark:text-slate-100"
+                                    />
+                                </div>
+                                <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-lg flex items-start gap-2">
+                                    <i className="bi bi-info-circle text-blue-600 dark:text-blue-400 mt-0.5 text-sm"></i>
+                                    <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-normal">
+                                        El Decreto No. 499 establece que la Quincena Veinticinco debe pagarse estrictamente entre el 15 y el 25 de enero. Ingrese la fecha efectiva de pago; el sistema calculará la antigüedad y el salario base de los colaboradores vigentes a ese día.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -1070,6 +1184,9 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                     <th className="py-4 px-6">Salario Base</th>
                                     <th className="py-4 px-6">Beneficios / Comisiones ($)</th>
                                     <th className="py-4 px-6">Vacaciones a Pagar ($)</th>
+                                    <th className="py-4 px-6">Viáticos ($)</th>
+                                    <th className="py-4 px-6">Horas Extras Diurnas (Hrs)</th>
+                                    <th className="py-4 px-6">Horas Extras Nocturnas (Hrs)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
@@ -1093,25 +1210,68 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
+                                                <span className={`text-xs font-semibold ${
+                                                    novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
+                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-md' 
+                                                        : 'text-slate-400 dark:text-slate-500 font-medium'
+                                                }`}>
+                                                    {novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
+                                                        ? formatMoneda(novedades[emp.id].vacaciones)
+                                                        : 'No programadas'}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                placeholder="0.00"
+                                                value={novedades[emp.id]?.viaticos || ''}
+                                                onChange={(e) => handleNovedadChange(emp.id, 'viaticos', e.target.value)}
+                                                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                            />
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex flex-col gap-1.5">
                                                 <input
-                                                    type="checkbox"
-                                                    checked={!!novedades[emp.id]?.vacaciones}
-                                                    onChange={(e) => {
-                                                        const appliesVacation = e.target.checked;
-                                                        const autoVal = appliesVacation 
-                                                            ? Math.round(((parseFloat(emp.salario_base) / 2.0) * 1.30) * 100) / 100
-                                                            : 0.00;
-                                                        handleNovedadChange(emp.id, 'vacaciones', autoVal);
-                                                    }}
-                                                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 cursor-pointer"
+                                                    type="number"
+                                                    step="0.5"
+                                                    min="0"
+                                                    placeholder="0.0"
+                                                    value={novedades[emp.id]?.horas_extras_diurnas_qty || ''}
+                                                    onChange={(e) => handleNovedadChange(emp.id, 'horas_extras_diurnas_qty', e.target.value)}
+                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
                                                 />
                                                 <span className={`text-xs font-semibold ${
-                                                    novedades[emp.id]?.vacaciones 
-                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold' 
+                                                    novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
+                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
                                                         : 'text-slate-400 dark:text-slate-500'
                                                 }`}>
-                                                    {novedades[emp.id]?.vacaciones 
-                                                        ? formatMoneda(novedades[emp.id].vacaciones)
+                                                    {novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
+                                                        ? formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_diurnas_qty) * (parseFloat(emp.salario_base) / 120.0)) * 100) / 100)
+                                                        : 'No aplica'}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-6">
+                                            <div className="flex flex-col gap-1.5">
+                                                <input
+                                                    type="number"
+                                                    step="0.5"
+                                                    min="0"
+                                                    placeholder="0.0"
+                                                    value={novedades[emp.id]?.horas_extras_nocturnas_qty || ''}
+                                                    onChange={(e) => handleNovedadChange(emp.id, 'horas_extras_nocturnas_qty', e.target.value)}
+                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                                />
+                                                <span className={`text-xs font-semibold ${
+                                                    novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
+                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
+                                                        : 'text-slate-400 dark:text-slate-500'
+                                                }`}>
+                                                    {novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
+                                                        ? formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) * (parseFloat(emp.salario_base) / 96.0)) * 100) / 100)
                                                         : 'No aplica'}
                                                 </span>
                                             </div>

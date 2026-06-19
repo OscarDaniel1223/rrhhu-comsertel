@@ -167,3 +167,17 @@ Error interno del servidor al generar la planilla. documenta el problema y soluc
 
 - [x] **Tarea 20 (Frontend y backend):** Crea una UI para gestionar los cargos desde el Frontend, crea un componente para visualizar la tabla, otro componente para modificar los cargos en forma de formulario, y otro componente que cumpla la funcion de contenedor para que se visualice como frontend/app-react/src/components/V2_ContenedorEmpleado.jsx sigue las practicas de Documentacion/02-desarrollo-arquitectura/Buenas-Practicas-Backend.md y Documentacion/02-desarrollo-arquitectura/Buenas-Practicas-Backend.md, y al final documenta en Documentacion/02-desarrollo-arquitectura/API.md
 - [x] **Tarea 21 (Frontend):** En la UI de generar planilla, en lugar de ingresar manualmente el monto a pagar por vacaciones, implementar un checklist para seleccionar a los empleados a quienes se les pagará las vacaciones, realizando el cálculo automáticamente en base a su salario base mensual y guardándolo en la base de datos a través del desglose de novedades. (Completado)
+
+- [x] **Tarea 22 (Frontend y backend):** En Formato Planilla Consolidada el tiempo lo calcula con decimales, cambialo a numero entero ejemplo 14.08 salida 14 (Completado)
+
+- [x] **Tarea 23 (Frontend y backend):** En Formato Planilla Consolidada el "Mes ingreso" lo quiero visualizar en numero, aparace el nombre del mes ejempo Enero salida quiero que se muestre 01 (Completado)
+- [x] **Tarea 24 (Frontend y backend):** Quiero una UI para registrar los viaticos, Horas extras diurnas, Horas extras nocturnas, el nombre del componente lo dejo a tu criterio (Completado)
+- [x] **Tarea 25 (Frontend):** En Formato Planilla Consolidada quita la conlumna INCAF (Completado)
+- [x] **Tarea 26 (Frontend y backend):** En Formato Planilla Consolidada quiero saber por ISSS Empleado, AFP Empleado, ISR (Renta) Los numero salen en negativo documenta (Completado)
+- [x] **Tarea 27 (Frontend y backend):** En Formato Planilla los numero y titulos de columna salen con color quitalo ya que difuculta su lectura, ponlo todo color negro,Solo utiliza color en la fila "TOTAL PLANILLA" un beneficio en color verde o rojo oscuro negrita para marcar una salida de flujo de nuestra empresa (Completado)
+
+- [x] **Tarea 28 (Frontend y backend):** en "Generar Planilla" when se selecciona el mes enero aparace el checklist para la quincena veinticinco pero al dar generar no se visualiza osea el dato no se manda a la base de datos (Corregido y Completado)
+
+- [x] **Tarea 29 (Frontend y backend):** en la UI generar planilla en las columnas Horas extras diurnas y Horas extras nocturnas, quiero que calculen automaticamente con en la columna "Vaciones a pagar" (Completado) 
+
+- [x] **Tarea 30 (Frontend y backend):** Diseñar e implementar el nuevo módulo de "Programación de Vacaciones" conciliado. Esto incluye la creación de la columna `mes_vacaciones` en la tabla `empleados`, el desarrollo de una nueva UI para listar empleados aptos (antigüedad >= 1 año) y calendarizar el mes de goce (1-12), la eliminación de los checkboxes manuales de vacaciones de la UI de planillas, y la automatización del pago de vacaciones (1.30 * salario base / 2) al coincidir el mes de la planilla con el mes programado. (Completado) 

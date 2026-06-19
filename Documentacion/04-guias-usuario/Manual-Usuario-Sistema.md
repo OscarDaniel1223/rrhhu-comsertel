@@ -66,39 +66,48 @@ Establece los puestos y la escala salarial de la empresa:
 * **Crear Cargo:** Ingrese el titulo del puesto, el salario base respectivo y asocie el departamento correspondiente.
 
 ---
-
 ## 4. Generacion y Procesamiento de Planillas
 
 Este es el proceso central del sistema. Siga estos pasos detallados para computar los salarios de la plantilla:
 
-### Paso 1: Seleccion de Periodo y Fechas
+### Paso 1: Seleccion de Periodo
 1. Dirijase al modulo de **Planillas**.
-2. Haga clic en **Generar Planilla**.
-3. Seleccione el **Tipo de Periodo** (Mensual o Quincenal).
-4. Indique el mes y el año del periodo.
-5. Ingrese las fechas exactas de **Inicio** y **Fin** del periodo de pago.
+2. Haga clic en el boton **Generar Planilla**.
+3. Seleccione el **Mes Actual** que desea calcular. Las fechas de inicio y fin, asi como el tipo de periodo, se configuran de manera automatica en el sistema para reducir errores operativos de digitacion.
 
 ### Paso 2: Parametrizacion Especial de Prestaciones (Aguinaldo y Quincena Veinticinco)
 El sistema evalua de forma automatica el periodo ingresado y activa los siguientes calculos segun corresponda:
-* **Calculo del Aguinaldo:**
+* **Calculo del Aguinaldo**:
   * Si la fecha de fin de la planilla se encuentra dentro del rango del **20 de octubre al 20 de diciembre** de cualquier año, el sistema activara automaticamente el calculo del aguinaldo anual.
-  * El sistema evaluara la antiguedad del colaborador al 20 de octubre y le pagara el monto que corresponde por ley (completo o proporcional si tiene menos de un año de laborar).
-* **Switch de la Quincena Veinticinco (Voluntariedad 2026):**
-  * Si el mes evaluado es **Enero de 2026**, la interfaz mostrara de forma automatica un checkbox o switch titulado: **"Aplicar Quincena Veinticinco (Voluntario 2026)"**.
-  * Si la empresa decide aplicar voluntariamente el beneficio este año de transicion, deje el switch activo. El sistema procesara el 50% de salario exento para aquellos empleados que devengan $1,500.00 USD o menos.
+  * El sistema evaluara la antiguedad de cada colaborador y computara el monto que corresponde por ley (completo o proporcional si tiene menos de un año de laborar).
+* **Switch de la Quincena Veinticinco (Enero de 2026)**:
+  * Si el mes seleccionado es **Enero de 2026**, la interfaz mostrara de forma automatica la seccion **"Aplicar Quincena Veinticinco (Voluntario 2026)"**.
+  * Si la empresa decide aplicar voluntariamente el beneficio este año de transicion, deje el switch activo e ingrese la **Fecha de Pago Efectiva** (la ley exige que sea obligatoriamente entre el 15 y el 25 de enero). El sistema procesara el 50% de salario exento para aquellos empleados que devengan $1,500.00 USD o menos, calculando los salarios nominales y la antiguedad de los colaboradores vigentes a esa fecha seleccionada.
   * Si la empresa decide no aplicarlo, desactive el switch. El sistema no realizara la provision ni el pago de dicho rubro en Enero de 2026.
-  * *Nota: A partir de enero del año 2027 en adelante, el beneficio se procesara de caracter obligatorio de acuerdo con el Decreto N. 499.*
+  * *Nota: A partir de enero del año 2027 en adelante, el beneficio se procesara con caracter obligatorio de acuerdo con el Decreto N. 499.*
 
-### Paso 3: Generacion Preliminar (Borrador)
-1. Haga clic en el boton **Generar**.
+### Paso 3: Registro de Novedades e Incidencias del Periodo
+Antes de generar la planilla, se habilitara un listado de todos los colaboradores activos para registrar pagos adicionales u horas extraordinarias en el periodo:
+* **Beneficios / Comisiones ($)**: Ingrese el monto en dolares correspondiente a bonos, comisiones o incentivos adicionales.
+* **Vacaciones a Pagar**: Active la casilla de verificacion (checklist) junto al colaborador al que se le liquidara su periodo vacacional anual. El sistema calculara automaticamente el importe monetario correspondiente aplicando el **130% de la quincena de salario base** de acuerdo con la ley salvadoreña de vacaciones remuneradas (15 dias de salario mas el 30% de recargo de ley):
+  $$\text{Monto Vacaciones} = \frac{\text{Salario Base Mensual}}{2} \times 1.30$$
+* **Viaticos ($)**: Ingrese el monto de viaticos devengado por viajes o gastos operativos. Este rubro esta configurado como un reembolso exento de descuentos de Seguro Social (ISSS), Prevision Social (AFP) e Impuesto sobre la Renta (ISR).
+* **Horas Extras Diurnas (Hrs) y Horas Extras Nocturnas (Hrs)**: Ingrese la **cantidad de horas extras** trabajadas por el colaborador (admite numeros decimales, por ejemplo, 1.5 horas). Al digitar el numero de horas, la interfaz del sistema calculara de forma automatica y en tiempo real el valor economico equivalente en dolares bajo el input, basandose en el salario base del colaborador y los recargos de ley salvadoreños:
+  * *Horas Extras Diurnas*: Pago doble de la hora ordinaria diurna:
+    $$\text{Monto HED} = \text{Cantidad de Horas} \times \frac{\text{Salario Base Mensual}}{120.0}$$
+  * *Horas Extras Nocturnas*: Pago doble de la hora ordinaria nocturna (recargo del 25% sobre la ordinaria diurna):
+    $$\text{Monto HEN} = \text{Cantidad de Horas} \times \frac{\text{Salario Base Mensual}}{96.0}$$
+
+### Paso 4: Generacion Preliminar (Borrador)
+1. Haga clic en el boton **Procesar y Generar Planilla**.
 2. El sistema creara un registro en estado **Borrador**.
-3. Vera la lista preliminar de todos los empleados con sus respectivos salarios devengados, deducciones de ISSS, AFP, Retencion de Renta, Quincena 25, Aguinaldo y el Salario Neto Liquido a pagar.
-4. Si detecta algun error o requiere añadir bonificaciones, puede corregir los datos de empleados, cargos o ausencias, y hacer clic en **Recalcular**.
+3. Se presentara en pantalla la tabla consolidada preliminar de todos los empleados con sus respectivos salarios devengados totales, deducciones calculadas (ISSS, AFP, Retencion de Renta), subsidios y beneficios aplicados (Quincena 25, Vacaciones, Horas Extras, Viaticos), asi como el Salario Neto Liquido a pagar de cada colaborador.
+4. Si detecta algun error o requiere añadir/corregir novedades, puede volver atras, actualizar los datos de novedades de los empleados, y procesar nuevamente la planilla.
 
-### Paso 4: Cierre Definitivo de Planilla
-1. Una vez que la planilla ha sido auditada y corregida, haga clic en el boton **Cerrar Planilla**.
+### Paso 5: Cierre Definitivo de Planilla
+1. Una vez que la planilla ha sido auditada y revisada minuciosamente en la tabla "Detalle de Empleados en Planilla" y las tarjetas de resumen general, haga clic en el boton **Cerrar Planilla**.
 2. El estado cambiara a **Cerrada**.
-3. **Advertencia de Seguridad:** Al cerrar una planilla, los datos financieros quedan congelados de forma definitiva para efectos contables e historicos. No podra realizar modificaciones posteriores sobre este periodo.
+3. **Advertencia de Seguridad**: Al cerrar una planilla, los datos financieros quedan congelados de forma definitiva para efectos contables e historicos del sistema. No podra realizar modificaciones, eliminaciones ni recalculos sobre este periodo una vez que este cerrado.
 
 ---
 

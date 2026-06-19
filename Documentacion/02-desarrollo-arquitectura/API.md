@@ -287,7 +287,7 @@ La gestión de estos endpoints se realiza a través de los siguientes módulos d
 
 ### 3. Generar Planilla
 - **Endpoint:** `POST /api/planillas`
-- **Descripción:** Crea un registro de planilla e inicia el procesamiento y cálculo de nómina masivo de todos los empleados en estado ACTIVO para el rango de fechas y período configurado. Registra las deducciones previsionales (AFP, ISSS, Renta 2025) y los aportes patronales (ISSS 7.5%, AFP 8.75%, INCAF 1%), guardando la información en boletas_pago. Permite pasar un arreglo opcional de novedades (beneficios o vacaciones) por empleado.
+- **Descripción:** Crea un registro de planilla e inicia el procesamiento y cálculo de nómina masivo de todos los empleados en estado ACTIVO para el rango de fechas y período configurado. Registra las deducciones previsionales (AFP, ISSS, Renta 2025) y los aportes patronales (ISSS 7.5%, AFP 8.75%, INCAF 1%), guardando la información en boletas_pago. Permite pasar un arreglo opcional de novedades (beneficios, vacaciones, viáticos, horas extras diurnas y horas extras nocturnas) por empleado.
 - **Body:**
 ```json
 {
@@ -298,7 +298,10 @@ La gestión de estos endpoints se realiza a través de los siguientes módulos d
     {
       "id_empleado": 3,
       "beneficios": 50.00,
-      "vacaciones": 0.00
+      "vacaciones": 0.00,
+      "viaticos": 100.00,
+      "horas_extras_diurnas": 45.00,
+      "horas_extras_nocturnas": 25.00
     }
   ]
 }

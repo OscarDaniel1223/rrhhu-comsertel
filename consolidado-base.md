@@ -49,6 +49,7 @@ CREATE TABLE empleados (
    fecha_ingreso DATE NOT NULL,
    id_cargo INT NOT NULL,
    estado ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO',
+   mes_vacaciones INT DEFAULT NULL, -- Mes del año (1-12) conciliado para el pago de vacaciones
    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY (id_cargo) REFERENCES cargos(id)
 );

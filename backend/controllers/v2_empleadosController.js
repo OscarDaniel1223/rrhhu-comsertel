@@ -4,6 +4,7 @@ exports.getEmpleados = async (req, res) => {
     try {
         const query = `
             SELECT e.id, e.dui, e.nit, e.nombres, e.apellidos, e.fecha_ingreso, e.id_cargo, e.estado, e.creado_en,
+                   e.mes_vacaciones,
                    c.titulo AS cargo, c.salario_base, d.nombre AS departamento
             FROM empleados e
             LEFT JOIN cargos c ON e.id_cargo = c.id
@@ -30,6 +31,7 @@ exports.getEmpleadoById = async (req, res) => {
         const { id } = req.params;
         const query = `
             SELECT e.id, e.dui, e.nit, e.nombres, e.apellidos, e.fecha_ingreso, e.id_cargo, e.estado, e.creado_en,
+                   e.mes_vacaciones,
                    c.titulo AS cargo, c.salario_base, d.nombre AS departamento
             FROM empleados e
             LEFT JOIN cargos c ON e.id_cargo = c.id
@@ -210,6 +212,48 @@ exports.deleteEmpleado = async (req, res) => {
             status: 'error',
             error: 'FOREIGN_KEY_CONSTRAINT_FAILS',
             message: 'Error al eliminar el empleado, podría tener registros asociados (ausencias, planillas)'
+        });
+    }
+};
+
+exports.programarVacacion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { mes_vacaciones } = req.body; // Número del 1 al 12 o null
+        
+        const mesVal = mes_vacaciones === null || mes_vacaciones === '' ? null : parseInt(mes_vacaciones, 10);
+        if (mesVal !== null && (isNaN(mesVal) || mesVal < 1 || mesVal > 12)) {
+            return res.status(400).json({
+                status: 'error',
+                error: 'VALIDATION_ERROR',
+                message: 'El mes de vacaciones debe estar entre 1 y 12 o ser nulo.'
+            });
+        }
+        
+        const [result] = await db.query(
+            'UPDATE empleados SET mes_vacaciones = ? WHERE id = ?',
+            [mesVal, id]
+        );
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                status: 'error',
+                error: 'NOT_FOUND',
+                message: 'Empleado no encontrado'
+            });
+        }
+        
+        res.json({
+            status: 'success',
+            data: { id, mes_vacaciones: mesVal },
+            message: 'Vacaciones programadas exitosamente'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: 'error',
+            error: 'INTERNAL_SERVER_ERROR',
+            message: 'Error interno del servidor al programar las vacaciones'
         });
     }
 };
