@@ -12,8 +12,10 @@
 export const menuItems = [
     { id: "home", label: "Dashboard", icon: "bi-grid", rol: ["1", "3"], submenu: false, config: false },
     { id: "employees", label: "Empleados", icon: "bi-person-vcard", rol: ["1", "3"], submenu: false, config: false },
+    { id: "positions", label: "Cargos", icon: "bi-person-badge", rol: ["1", "3"], submenu: false, config: false },
     { id: "absences", label: "Ausencias", icon: "bi-calendar-x", rol: ["1", "3"], submenu: false, config: false },
     { id: "payroll", label: "Planilla", icon: "bi-cash-stack", rol: ["1", "3"], submenu: false, config: false },
+    { id: "payroll_format", label: "Reporte Planilla", icon: "bi-file-earmark-spreadsheet", rol: ["1", "3"], submenu: false, config: false },
 
     // Configuraciones (se muestran bajo la seccion inferior)
     { id: "users", label: "Lista de usuarios", icon: "bi-people", rol: ["1"], config: true },

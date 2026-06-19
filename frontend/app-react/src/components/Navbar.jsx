@@ -141,6 +141,33 @@ export default function Navbar({ activeItem, handleItemClick }) {
             {/* Submenu de configuraciones */}
             {showSettings && (
               <div className="flex flex-col py-1 gap-0.5 bg-slate-100/30 dark:bg-slate-800/20 rounded-md">
+                {/* 1. Alternar Modo Oscuro */}
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="flex items-center justify-between w-full pl-8 pr-5 py-2 text-xs font-medium text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  <span className="flex items-center">
+                    <i
+                      className={`bi ${
+                        darkMode ? "bi-moon-fill" : "bi-sun-fill"
+                      } text-sm mr-2 text-slate-400 dark:text-white/60`}
+                    ></i>
+                    Modo {darkMode ? "Oscuro" : "Claro"}
+                  </span>
+                  <div
+                    className={`w-8 h-4 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                      darkMode ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
+                        darkMode ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    ></div>
+                  </div>
+                </button>
+
+                {/* 2. Lista de usuarios (cargados dinámicamente según rol) */}
                 {menuItems
                   .filter(
                     (item) =>
@@ -168,33 +195,7 @@ export default function Navbar({ activeItem, handleItemClick }) {
                     );
                   })}
 
-                {/* Alternar Modo Oscuro */}
-                <button
-                  onClick={() => setDarkMode(!darkMode)}
-                  className="flex items-center justify-between w-full pl-8 pr-5 py-2 text-xs font-medium text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  <span className="flex items-center">
-                    <i
-                      className={`bi ${
-                        darkMode ? "bi-moon-fill" : "bi-sun-fill"
-                      } text-sm mr-2 text-slate-400 dark:text-white/60`}
-                    ></i>
-                    Modo {darkMode ? "Oscuro" : "Claro"}
-                  </span>
-                  <div
-                    className={`w-8 h-4 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
-                      darkMode ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
-                    }`}
-                  >
-                    <div
-                      className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
-                        darkMode ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </button>
-
-                {/* Boton de Soporte */}
+                {/* 3. Boton de Soporte */}
                 <button
                   onClick={() => {
                     setShowSupportModal(true);
@@ -205,12 +206,8 @@ export default function Navbar({ activeItem, handleItemClick }) {
                   <i className="bi bi-question-circle text-sm mr-2 text-slate-400 dark:text-white/60"></i>
                   Soporte
                 </button>
-              </div>
-            )}
 
-            {/* Submenu de usuario (Cerrar Sesion) */}
-            {showUserMenu && (
-              <div className="flex flex-col py-1 gap-0.5 bg-slate-100/30 dark:bg-slate-800/20 rounded-md mt-1">
+                {/* 4. Cerrar sesion */}
                 <button
                   onClick={handleLogout}
                   className="flex items-center w-full pl-8 pr-5 py-2 text-xs font-medium text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white transition-colors"
@@ -220,31 +217,23 @@ export default function Navbar({ activeItem, handleItemClick }) {
                 </button>
               </div>
             )}
+          </div>
 
-            {/* Bloque del Usuario al Final (Avatar + Nombre clickable) */}
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-3 w-full p-3 mt-2 text-left border-t border-slate-100 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-800/30 rounded-lg transition-colors cursor-pointer"
-            >
-              <img
-                src={user_icon}
-                alt="Icono de usuario"
-                className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-white m-0 truncate">
-                  {user?.name || "Usuario"}
-                </p>
-                <p className="text-[10px] text-slate-400 dark:text-white/40 m-0 truncate">
-                  {user?.rol == 1 ? "Administrador" : "Empleado"}
-                </p>
-              </div>
-              <i
-                className={`bi bi-chevron-${
-                  showUserMenu ? "down" : "up"
-                } text-xs text-slate-400 dark:text-white/40`}
-              ></i>
-            </button>
+          {/* Bloque del Usuario al Final (Avatar + Nombre - Solo informativo) */}
+          <div className="flex items-center gap-3 w-full p-3 mt-auto border-t border-slate-100 dark:border-slate-800 bg-slate-50/20 dark:bg-slate-900/20 rounded-lg">
+            <img
+              src={user_icon}
+              alt="Icono de usuario"
+              className="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-800 dark:text-white m-0 truncate">
+                {user?.name || "Usuario"}
+              </p>
+              <p className="text-[10px] text-slate-400 dark:text-white/40 m-0 truncate">
+                {user?.rol == 1 ? "Administrador" : "Empleado"}
+              </p>
+            </div>
           </div>
         </div>
       </div>

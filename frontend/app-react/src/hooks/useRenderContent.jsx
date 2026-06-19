@@ -5,6 +5,8 @@ import V2_ContenedorEmpleado from "../components/V2_ContenedorEmpleado";
 import V2_ContenedorAusencia from "../components/V2_ContenedorAusencia";
 import V2_GestionAusencias from "../components/V2_GestionAusencias";
 import V2_ContenedorPlanilla from "../components/V2_ContenedorPlanilla";
+import V2_ContenedorPlanillaFormato from "../components/V2_ContenedorPlanillaFormato";
+import V2_ContenedorCargo from "../components/V2_ContenedorCargo";
 import { menuItems } from "../services/menuConfig";
 import { useAuth } from "../providers/AuthContext";
 
@@ -43,6 +45,9 @@ export default function useRenderContent(activeItem) {
     case "employees":
       content = <V2_ContenedorEmpleado />;
       break;
+    case "positions":
+      content = <V2_ContenedorCargo />;
+      break;
     case "absences":
       content = <V2_ContenedorAusencia />;
       break;
@@ -52,6 +57,9 @@ export default function useRenderContent(activeItem) {
     case "payroll":
     case "payroll_reports":
       content = <V2_ContenedorPlanilla />;
+      break;
+    case "payroll_format":
+      content = <V2_ContenedorPlanillaFormato />;
       break;
 
     default:

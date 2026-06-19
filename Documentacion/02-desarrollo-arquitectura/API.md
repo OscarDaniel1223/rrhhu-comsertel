@@ -126,6 +126,13 @@ Esta documentación cubre los endpoints creados para la gestión de Departamento
 - **Descripción:** Elimina un cargo (fallará si tiene empleados asignados).
 - **Respuesta Exitosa:** `200 OK`
 
+### Integración en el Frontend
+La gestión de estos endpoints se realiza a través de los siguientes módulos del Frontend:
+* **Servicio:** [v2_cargoService.js](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/services/v2_cargoService.js) expone los métodos CRUD: `getCargos()`, `createCargo()`, `updateCargo()` y `deleteCargo()`.
+* **Componente Tabla:** [V2_TablaCargo.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/V2_TablaCargo.jsx) renderiza la grilla de puestos y gestiona búsquedas y eliminaciones.
+* **Componente Formulario:** [V2_FormularioCargo.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/V2_FormularioCargo.jsx) procesa el ingreso y modificación de puestos organizacionales.
+* **Contenedor Principal:** [V2_ContenedorCargo.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/V2_ContenedorCargo.jsx) agrupa la tabla y el formulario en una interfaz unificada mediante pestañas de navegación fluida.
+
 ---
 
 ## Ausencias e Incapacidades (`ausencias_incapacidades`)

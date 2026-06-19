@@ -140,6 +140,12 @@ $$\text{Vacacion Ordinaria} = 15 \times \left(\frac{\text{Salario Base}}{30.0}\r
 $$\text{Dias de Vacacion Proporcionales} = \frac{\text{Dias Laborados en el Año}}{365.0} \times 15.0$$
 $$\text{Vacacion Proporcional} = \text{Dias de Vacacion Proporcionales} \times \left(\frac{\text{Salario Base}}{30.0}\right) \times 1.30$$
 
+> [!NOTE]
+> **Justificación Operativa e Integración en la Generación de Planillas:**
+> Dado que la programación del descanso anual remunerado se coordina de manera individualizada a lo largo del año calendario entre el patrono y cada colaborador (según el Art. 177 del Código de Trabajo), el pago de la vacación no es recurrente ni global.
+> 
+> Para resolver esto, en la interfaz de usuario de **Generar Planilla** se ha integrado un mecanismo de selección mediante **Checklist**. Al seleccionar a los empleados que gozarán y liquidarán su vacación en el ciclo de nómina actual, el sistema calcula automáticamente la vacación ordinaria completa (`(salario_base / 2.0) * 1.30`) y lo registra como una novedad. Esto elimina la necesidad de ingresar manualmente el monto a pagar por el administrador, garantizando precisión aritmética legal y facilitando el almacenamiento directo en la base de datos en el campo `vacaciones` de la tabla `boletas_pago`.
+
 ### 3.3 Quincena Veinticinco (Decreto N. 499)
 * **Requisito de Aplicacion:** El salario base mensual del empleado debe ser menor o igual a $1,500.00 USD.
 * **Monto:** Equivalente al 50% del salario base mensual del colaborador.

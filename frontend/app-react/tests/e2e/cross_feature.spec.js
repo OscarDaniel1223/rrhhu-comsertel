@@ -116,9 +116,7 @@ test.describe('Pruebas Combinadas de Caracteristicas Tier 3', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          data: [{ id_usuario: 1, nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' }]
-        })
+        body: JSON.stringify([{ id_usuario: 1, nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' }])
       });
     });
   });
@@ -144,17 +142,13 @@ test.describe('Pruebas Combinadas de Caracteristicas Tier 3', () => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            data: [{ id_usuario: 1, text: 'ref1', nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' }]
-          })
+          body: JSON.stringify([{ id_usuario: 1, text: 'ref1', nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' }])
         });
       } else {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            data: [{ id_usuario: 1, text: 'ref2', nombre: 'Admin Modificado', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' }]
-          })
+          body: JSON.stringify([{ id_usuario: 1, text: 'ref2', nombre: 'Admin Modificado', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' }])
         });
       }
     });

@@ -92,12 +92,10 @@ test.describe('Pruebas de Usuarios F4', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          data: [
-            { id_usuario: 1, nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' },
-            { id_usuario: 2, nombre: 'RRHH User', email: 'rrhh@comsertel.com', rol: 'Recursos Humanos', idrol: 3, estado: 1, telefono: '87654321', numero_documento: '987654321' }
-          ]
-        })
+        body: JSON.stringify([
+          { id_usuario: 1, nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 1, telefono: '12345678', numero_documento: '123456789' },
+          { id_usuario: 2, nombre: 'RRHH User', email: 'rrhh@comsertel.com', rol: 'Recursos Humanos', idrol: 3, estado: 1, telefono: '87654321', numero_documento: '987654321' }
+        ])
       });
     });
   });
@@ -217,11 +215,9 @@ test.describe('Pruebas de Usuarios F4', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          data: [
-            { id_usuario: 1, nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 0, telefono: '12345678', numero_documento: '123456789' }
-          ]
-        })
+        body: JSON.stringify([
+          { id_usuario: 1, nombre: 'Admin User', email: 'admin@comsertel.com', rol: 'Administrador', idrol: 1, estado: 0, telefono: '12345678', numero_documento: '123456789' }
+        ])
       });
     });
 

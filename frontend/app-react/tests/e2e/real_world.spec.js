@@ -122,9 +122,7 @@ test.describe('Pruebas de Escenarios de la Vida Real Tier 4', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          data: [{ id_usuario: 2, nombre: 'Colaborador Nuevo', email: 'colab@comsertel.com', rol: 'Recursos Humanos', idrol: 3, estado: 1, telefono: '12345678', numero_documento: '123456789' }]
-        })
+        body: JSON.stringify([{ id_usuario: 2, nombre: 'Colaborador Nuevo', email: 'colab@comsertel.com', rol: 'Recursos Humanos', idrol: 3, estado: 1, telefono: '12345678', numero_documento: '123456789' }])
       });
     });
 
@@ -219,7 +217,7 @@ test.describe('Pruebas de Escenarios de la Vida Real Tier 4', () => {
     });
 
     await page.route('**/api/getUsuarios', async route => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
     });
 
     await page.route('**/api/newUser', async route => {
@@ -312,7 +310,7 @@ test.describe('Pruebas de Escenarios de la Vida Real Tier 4', () => {
     });
 
     await page.route('**/api/getUsuarios', async route => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
     });
 
     await page.route('**/api/newUser', async route => {
@@ -370,7 +368,7 @@ test.describe('Pruebas de Escenarios de la Vida Real Tier 4', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'success', data: [] }) });
     });
     await page.route('**/api/getUsuarios', async route => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
     });
 
     await page.goto('/');

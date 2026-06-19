@@ -1092,15 +1092,29 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                             />
                                         </td>
                                         <td className="py-4 px-6">
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                placeholder="0.00"
-                                                value={novedades[emp.id]?.vacaciones || ''}
-                                                onChange={(e) => handleNovedadChange(emp.id, 'vacaciones', e.target.value)}
-                                                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                            />
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!novedades[emp.id]?.vacaciones}
+                                                    onChange={(e) => {
+                                                        const appliesVacation = e.target.checked;
+                                                        const autoVal = appliesVacation 
+                                                            ? Math.round(((parseFloat(emp.salario_base) / 2.0) * 1.30) * 100) / 100
+                                                            : 0.00;
+                                                        handleNovedadChange(emp.id, 'vacaciones', autoVal);
+                                                    }}
+                                                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 cursor-pointer"
+                                                />
+                                                <span className={`text-xs font-semibold ${
+                                                    novedades[emp.id]?.vacaciones 
+                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold' 
+                                                        : 'text-slate-400 dark:text-slate-500'
+                                                }`}>
+                                                    {novedades[emp.id]?.vacaciones 
+                                                        ? formatMoneda(novedades[emp.id].vacaciones)
+                                                        : 'No aplica'}
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -1368,14 +1382,12 @@ const PlanillaListTab = ({ onVerDetalle }) => {
                                                     <i className="bi bi-eye mr-1.5"></i>
                                                     Ver Detalle
                                                 </button>
-                                                {esBorrador && (
                                                     <button
                                                         onClick={() => handleDelete(p.id)}
                                                         className="border border-red-600 hover:bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                                                     >
                                                         <i className="bi bi-trash"></i>
                                                     </button>
-                                                )}
                                             </div>
                                         </td>
                                     </tr>

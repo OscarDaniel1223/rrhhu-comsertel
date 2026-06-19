@@ -163,3 +163,7 @@ Error interno del servidor al generar la planilla. documenta el problema y soluc
 
   ### Plan de Retorno (Re-implementacion)
   - [ ] Volver a habilitar las restricciones de la Tarea 11 una vez finalizadas las pruebas de la UI.
+
+
+- [x] **Tarea 20 (Frontend y backend):** Crea una UI para gestionar los cargos desde el Frontend, crea un componente para visualizar la tabla, otro componente para modificar los cargos en forma de formulario, y otro componente que cumpla la funcion de contenedor para que se visualice como frontend/app-react/src/components/V2_ContenedorEmpleado.jsx sigue las practicas de Documentacion/02-desarrollo-arquitectura/Buenas-Practicas-Backend.md y Documentacion/02-desarrollo-arquitectura/Buenas-Practicas-Backend.md, y al final documenta en Documentacion/02-desarrollo-arquitectura/API.md
+- [x] **Tarea 21 (Frontend):** En la UI de generar planilla, en lugar de ingresar manualmente el monto a pagar por vacaciones, implementar un checklist para seleccionar a los empleados a quienes se les pagará las vacaciones, realizando el cálculo automáticamente en base a su salario base mensual y guardándolo en la base de datos a través del desglose de novedades. (Completado)
