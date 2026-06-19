@@ -167,6 +167,7 @@ const generarPlanilla = async (req, res) => {
         const anioActual = hoy.getFullYear();
         const mesActual = hoy.getMonth() + 1; // 1 a 12
 
+        /* BYPASS TEMPORAL DE RESTRICCIONES DE FECHA (TAREA 19 - SPRINT 5)
         // 1. Validar que no se generen planillas para meses pasados
         if (anioPlanilla < anioActual || (anioPlanilla === anioActual && mesPlanilla < mesActual)) {
             connection.release();
@@ -215,6 +216,7 @@ const generarPlanilla = async (req, res) => {
                 });
             }
         }
+        FIN DE BYPASS TEMPORAL */
 
         // 4. Validar que no exista ya una planilla registrada para ese rango exacto y tipo
         const [planillasExistentes] = await connection.query(

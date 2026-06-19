@@ -66,3 +66,100 @@ Este documento organiza el trabajo para el grupo de 5 estudiantes.
 - [x] **Tarea 16 (Frontend):** El boton Exportar CSV no genera el archivo CSV (Completado)
 - [x] **Tarea 17 (Frontend):** Dado las restricciones de la tarea 11 y quiero suponer que por eso al tratar de generar un nueva planilla con el boton procesar y generar planilla del mes actual lanza un error que dice: Error al generar planilla
 Error interno del servidor al generar la planilla. documenta el problema y solucion (Completado)
+
+- [] **Tarea 18 (backend):** Mover el boton de inicio de sesion que esta en frontend/app-react/src/components/Navbar.jsx a la pestaña configuracion, en configuraciones quiero el siguiente orden modo oscuro,Lista de usuarios,Soporte,y Cerrar sesion, luego actuliza las reglas del rocedamos a corregir los scripts de prueba E2E de Playwright para alinearlos coon los selectores y la estructura del nuevo menú de usuario.
+
+- [x] **Tarea 19 (Frontend y backend):** Quitar restricciones del backend y frontend temporalmente para probar la UI "Generar Planilla". **Importante:** Documentar con precision los cambios realizados en el codigo para revertirlos en produccion. (Completado)
+  ### Cambios Temporales Realizados (Bypass)
+  * **Archivo modificado (Backend):** `backend/controllers/v2_planillasController.js`
+      * **Linea(s) comentada(s) / modificada(s):** 170 a 217
+      * **Codigo original:**
+        ```javascript
+        // 1. Validar que no se generen planillas para meses pasados
+        if (anioPlanilla < anioActual || (anioPlanilla === anioActual && mesPlanilla < mesActual)) {
+            connection.release();
+            return res.status(400).json({
+                status: 'error',
+                error: 'PAST_MONTH_NOT_ALLOWED',
+                message: 'No se pueden generar planillas para meses anteriores al mes actual.'
+            });
+        }
+
+        // 2. Validar que no se intente generar para meses más allá del mes siguiente
+        const mesesDiferencia = (anioPlanilla - anioActual) * 12 + (mesPlanilla - mesActual);
+        if (mesesDiferencia > 1) {
+            connection.release();
+            return res.status(400).json({
+                status: 'error',
+                error: 'FUTURE_MONTH_NOT_ALLOWED',
+                message: 'Solo se pueden generar planillas para el mes actual o el mes siguiente.'
+            });
+        }
+
+        // 3. Si se intenta generar el mes siguiente, validar que el mes actual esté cerrado
+        if (mesesDiferencia === 1) {
+            const [planillasMesActual] = await connection.query(
+                `SELECT estado FROM planillas 
+                 WHERE YEAR(fecha_inicio) = ? AND MONTH(fecha_inicio) = ?`,
+                [anioActual, mesActual]
+            );
+
+            if (planillasMesActual.length === 0) {
+                connection.release();
+                return res.status(400).json({
+                    status: 'error',
+                    error: 'CURRENT_MONTH_NOT_GENERATED',
+                    message: 'No se puede generar la planilla del mes siguiente porque aún no se han generado las planillas del mes actual.'
+                });
+            }
+
+            const algunaAbierta = planillasMesActual.some(p => p.estado !== 'CERRADA');
+            if (algunaAbierta) {
+                connection.release();
+                return res.status(400).json({
+                    status: 'error',
+                    error: 'CURRENT_MONTH_NOT_CLOSED',
+                    message: 'No se puede generar la planilla del mes siguiente hasta que todas las planillas del mes actual estén en estado CERRADA.'
+                });
+            }
+        }
+        ```
+      * **Codigo temporal:**
+        ```javascript
+        /* BYPASS TEMPORAL DE RESTRICCIONES DE FECHA (TAREA 19 - SPRINT 5)
+        // 1. Validar que no se generen planillas para meses pasados
+        if (anioPlanilla < anioActual || (anioPlanilla === anioActual && mesPlanilla < mesActual)) { ... }
+        // 2. Validar que no se intente generar para meses más allá del mes siguiente
+        ...
+        // 3. Si se intenta generar el mes siguiente, validar que el mes actual esté cerrado
+        ...
+        FIN DE BYPASS TEMPORAL */
+        ```
+  * **Archivo modificado (Frontend):** `frontend/app-react/src/components/V2_ContenedorPlanilla.jsx`
+      * **Linea(s) comentada(s) / modificada(s):** Bloque de definicion de opciones de meses y select en render
+      * **Codigo original:**
+        ```javascript
+        const [mesSeleccionado, setMesSeleccionado] = useState(opcionMesActual.valor);
+        // ...
+        <select value={mesSeleccionado} onChange={(e) => setMesSeleccionado(e.target.value)}>
+            <option value={opcionMesActual.valor}>{opcionMesActual.label}</option>
+            <option value={opcionMesSiguiente.valor}>{opcionMesSiguiente.label}</option>
+        </select>
+        ```
+      * **Codigo temporal:**
+        ```javascript
+        const opcionesMesesBypass = nombresMeses.map((nombre, index) => ({
+            valor: `${anioActual}-${String(index + 1).padStart(2, '0')}`,
+            label: `${nombre} ${anioActual}`
+        }));
+        const [mesSeleccionado, setMesSeleccionado] = useState(opcionMesActual.valor);
+        // ...
+        <select value={mesSeleccionado} onChange={(e) => setMesSeleccionado(e.target.value)}>
+            {opcionesMesesBypass.map(opcion => (
+                <option key={opcion.valor} value={opcion.valor}>{opcion.label}</option>
+            ))}
+        </select>
+        ```
+
+  ### Plan de Retorno (Re-implementacion)
+  - [ ] Volver a habilitar las restricciones de la Tarea 11 una vez finalizadas las pruebas de la UI.

@@ -840,6 +840,12 @@ const PlanillaGenerarTab = ({ onBack }) => {
         label: `${nombresMeses[siguienteMesIndex]} ${siguienteAnio} (Mes Siguiente)`
     };
 
+    // BYPASS TEMPORAL DE MESES PARA PRUEBAS (TAREA 19 - SPRINT 5)
+    const opcionesMesesBypass = nombresMeses.map((nombre, index) => ({
+        valor: `${anioActual}-${String(index + 1).padStart(2, '0')}`,
+        label: `${nombre} ${anioActual}`
+    }));
+
     const [mesSeleccionado, setMesSeleccionado] = useState(opcionMesActual.valor);
     const [quincenaSeleccionada, setQuincenaSeleccionada] = useState('1'); // '1' o '2', solo se usa si tipoPeriodo === 'QUINCENAL'
     const [esVoluntarioAceptado, setEsVoluntarioAceptado] = useState(true);
@@ -1006,8 +1012,9 @@ const PlanillaGenerarTab = ({ onBack }) => {
                             onChange={(e) => setMesSeleccionado(e.target.value)}
                             className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
                         >
-                            <option value={opcionMesActual.valor}>{opcionMesActual.label}</option>
-                            <option value={opcionMesSiguiente.valor}>{opcionMesSiguiente.label}</option>
+                            {opcionesMesesBypass.map(opcion => (
+                                <option key={opcion.valor} value={opcion.valor}>{opcion.label}</option>
+                            ))}
                         </select>
                     </div>
 
