@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { getAusenciasIncapacidades, updateAusenciaIncapacidad } from '../services/v2_ausenciaService';
+import { getAusenciasIncapacidades, updateAusenciaIncapacidad } from '../../../services/employees/v2_ausenciaService';
 
 const getTipoBadge = (tipo) => {
   switch (tipo) {
@@ -59,7 +59,7 @@ const V2_GestionAusencias = () => {
   const handleResolver = async (solicitud, nuevoEstado) => {
     const actionText = nuevoEstado === 'APROBADA' ? 'APROBAR' : 'RECHAZAR';
     const confirmColor = nuevoEstado === 'APROBADA' ? '#16a34a' : '#dc2626';
-    
+
     const result = await Swal.fire({
       title: `¿Confirmar resolución?`,
       text: `¿Está seguro de que desea ${actionText.toLowerCase()} esta solicitud de ausencia para el colaborador ${solicitud.empleado_nombres} ${solicitud.empleado_apellidos}?`,
@@ -106,7 +106,7 @@ const V2_GestionAusencias = () => {
     const cumpleVista = s.estado === 'PENDIENTE';
 
     const nombreCompleto = `${s.empleado_nombres} ${s.empleado_apellidos}`.toLowerCase();
-    const cumpleBusqueda = 
+    const cumpleBusqueda =
       nombreCompleto.includes(busqueda.toLowerCase()) ||
       s.empleado_dui.includes(busqueda) ||
       (s.motivo && s.motivo.toLowerCase().includes(busqueda.toLowerCase())) ||

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useAuth } from "../../providers/AuthContext";
-import { getEmpleados } from "../../services/v2_empleadoService";
-import { getAusenciasIncapacidades } from "../../services/v2_ausenciaService";
-import { getPlanillas } from "../../services/v2_planillaService";
+import { getEmpleados } from "../../services/employees/v2_empleadoService";
+import { getAusenciasIncapacidades } from "../../services/employees/v2_ausenciaService";
+import { getPlanillas } from "../../services/employees/v2_planillaService";
 
 export default function Home() {
   const { user } = useAuth();
@@ -209,7 +209,7 @@ export default function Home() {
 
   return (
     <div className="p-6 md:p-8 max-h-screen overflow-y-auto transition-colors duration-200">
-      
+
       {/* Saludo y Encabezado */}
       <div className="mb-8 text-left">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -222,7 +222,7 @@ export default function Home() {
 
       {/* Tarjetas de Metricas Superiores */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        
+
         {/* Tarjeta: Total Empleados */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 flex flex-col justify-between transition-colors duration-200">
           <div className="flex items-center justify-between mb-4">
@@ -287,7 +287,7 @@ export default function Home() {
 
       {/* Widgets Inferiores */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Distribucion por Departamento */}
         <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 transition-colors duration-200">
           <h3 className="text-base font-bold text-slate-900 dark:text-white mb-6 text-left">
@@ -363,7 +363,7 @@ export default function Home() {
               {stats.actividadesRecientes.length > 0 ? (
                 stats.actividadesRecientes.map((act) => (
                   <div key={act.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    
+
                     {/* Icono de Actividad */}
                     <div className={`p-2.5 ${act.iconBg} ${act.iconColor} rounded-xl`}>
                       <i className={`bi ${act.icon} text-lg flex items-center justify-center`}></i>

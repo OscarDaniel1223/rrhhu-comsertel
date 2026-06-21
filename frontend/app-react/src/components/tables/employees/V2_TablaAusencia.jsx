@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { getAusenciasIncapacidades, updateAusenciaIncapacidad } from '../services/v2_ausenciaService';
-import { getEmpleados } from '../services/v2_empleadoService';
+import { getAusenciasIncapacidades, updateAusenciaIncapacidad } from '../../../services/employees/v2_ausenciaService';
+import { getEmpleados } from '../../../services/employees/v2_empleadoService';
 
 const getTipoBadge = (tipo) => {
   switch (tipo) {
@@ -56,7 +56,7 @@ const V2_TablaAusencia = ({ onEdit }) => {
       if (responseAusencias.status === 'success') {
         setAusencias(responseAusencias.data);
       }
-      
+
       const responseEmpleados = await getEmpleados();
       if (responseEmpleados.status === 'success') {
         setEmpleados(responseEmpleados.data);
@@ -125,9 +125,9 @@ const V2_TablaAusencia = ({ onEdit }) => {
   // Filtrado y busqueda combinados
   const ausenciasFiltradas = ausencias.filter((ai) => {
     const cumpleFiltroEmpleado = filtroEmpleado === 'Todos' || String(ai.id_empleado) === filtroEmpleado;
-    
+
     const nombreCompleto = `${ai.empleado_nombres} ${ai.empleado_apellidos}`.toLowerCase();
-    const cumpleBusqueda = 
+    const cumpleBusqueda =
       nombreCompleto.includes(busqueda.toLowerCase()) ||
       ai.empleado_dui.includes(busqueda) ||
       (ai.motivo && ai.motivo.toLowerCase().includes(busqueda.toLowerCase())) ||

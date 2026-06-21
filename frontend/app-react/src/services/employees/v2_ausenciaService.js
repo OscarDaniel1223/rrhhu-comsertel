@@ -1,4 +1,4 @@
-import v2_api from './v2_api';
+import v2_api from '../v2_api';
 
 export const getAusenciasIncapacidades = async (idEmpleado = null) => {
     const url = idEmpleado ? `/ausencias-incapacidades?id_empleado=${idEmpleado}` : '/ausencias-incapacidades';

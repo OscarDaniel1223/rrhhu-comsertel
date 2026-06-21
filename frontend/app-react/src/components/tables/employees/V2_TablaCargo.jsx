@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getCargos, deleteCargo } from '../services/v2_cargoService';
-import { showError, showSuccess, showQuestion, showLoading } from '../utils/alerts';
+import { getCargos, deleteCargo } from '../../../services/employees/v2_cargoService';
+import { showError, showSuccess, showQuestion, showLoading } from '../../../utils/alerts';
 
 const formatSalario = (salario) => {
   if (salario === null || salario === undefined) return '-';
@@ -61,14 +61,14 @@ export default function V2_TablaCargo({ onEditCargo }) {
   // Filtrar cargos por búsqueda y departamento
   const filteredCargos = cargos.filter(cargo => {
     const cumpleDepto = filtroDepto === 'Todos' || cargo.departamento === filtroDepto;
-    
+
     const termino = busqueda.toLowerCase().trim();
     if (!termino) return cumpleDepto;
-    
+
     const cumpleBusqueda = cargo.titulo.toLowerCase().includes(termino) ||
-                           cargo.departamento.toLowerCase().includes(termino) ||
-                           cargo.salario_base.toString().includes(termino);
-                           
+      cargo.departamento.toLowerCase().includes(termino) ||
+      cargo.salario_base.toString().includes(termino);
+
     return cumpleDepto && cumpleBusqueda;
   });
 

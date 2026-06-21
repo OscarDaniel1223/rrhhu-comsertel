@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getEmpleados, programarVacacion } from '../services/v2_empleadoService';
+import { getEmpleados, programarVacacion } from '../../../services/employees/v2_empleadoService';
 import Swal from 'sweetalert2';
 
 const parseFechaLocal = (f) => {
@@ -69,10 +69,10 @@ const V2_ContenedorProgramacionVacaciones = () => {
             const response = await programarVacacion(empleadoId, val);
             if (response.status === 'success') {
                 // Actualizar localmente el estado de empleados
-                setEmpleados(prev => prev.map(emp => 
+                setEmpleados(prev => prev.map(emp =>
                     emp.id === empleadoId ? { ...emp, mes_vacaciones: val } : emp
                 ));
-                
+
                 // Mostrar alerta Toast fluida
                 const Toast = Swal.mixin({
                     toast: true,
@@ -100,7 +100,7 @@ const V2_ContenedorProgramacionVacaciones = () => {
     const processedEmpleados = empleados.map(emp => {
         const fechaIngresoDate = parseFechaLocal(emp.fecha_ingreso);
         const hoy = new Date();
-        
+
         let tiempoAnios = 0;
         if (fechaIngresoDate) {
             const diffTime = hoy.getTime() - fechaIngresoDate.getTime();
@@ -124,13 +124,13 @@ const V2_ContenedorProgramacionVacaciones = () => {
     const listadoActual = activeTab === 'aptos' ? aptos : noElegibles;
 
     const listadoFiltrado = listadoActual.filter(emp => {
-        const matchesSearch = `${emp.nombres} ${emp.apellidos}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             emp.cargo.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             emp.departamento.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesMes = filtroMes === 'todos' || 
-                           (filtroMes === 'no_asignado' && emp.mes_vacaciones === null) || 
-                           emp.mes_vacaciones === parseInt(filtroMes, 10);
+        const matchesSearch = `${emp.nombres} ${emp.apellidos}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            emp.cargo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            emp.departamento.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesMes = filtroMes === 'todos' ||
+            (filtroMes === 'no_asignado' && emp.mes_vacaciones === null) ||
+            emp.mes_vacaciones === parseInt(filtroMes, 10);
 
         return matchesSearch && matchesMes;
     });
@@ -168,22 +168,20 @@ const V2_ContenedorProgramacionVacaciones = () => {
             <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6">
                 <button
                     onClick={() => { setActiveTab('aptos'); setFiltroMes('todos'); }}
-                    className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 flex items-center gap-2 ${
-                        activeTab === 'aptos'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
+                    className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 flex items-center gap-2 ${activeTab === 'aptos'
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
                 >
                     <i className="bi bi-patch-check"></i>
                     Personal Apto ({aptos.length})
                 </button>
                 <button
                     onClick={() => { setActiveTab('no_elegibles'); setFiltroMes('todos'); }}
-                    className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 flex items-center gap-2 ${
-                        activeTab === 'no_elegibles'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
+                    className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 flex items-center gap-2 ${activeTab === 'no_elegibles'
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
                 >
                     <i className="bi bi-clock-history"></i>
                     Aun no elegibles o Inactivos ({noElegibles.length})
@@ -258,18 +256,18 @@ const V2_ContenedorProgramacionVacaciones = () => {
                                         <td className="py-4 px-6 font-semibold text-slate-900 dark:text-white">
                                             {emp.nombres} {emp.apellidos}
                                         </td>
-                                        
+
                                         {/* Cargo */}
                                         <td className="py-4 px-6">
                                             <span className="block font-medium text-slate-700 dark:text-slate-300">{emp.cargo}</span>
                                             <span className="text-xs text-slate-400 dark:text-slate-500">{emp.departamento}</span>
                                         </td>
-                                        
+
                                         {/* Fecha Ingreso */}
                                         <td className="py-4 px-6 font-mono text-xs text-slate-500 dark:text-slate-400">
                                             {formatFechaLocal(emp.fecha_ingreso)}
                                         </td>
-                                        
+
                                         {/* Antigüedad */}
                                         <td className="py-4 px-6 text-center font-mono font-semibold">
                                             {emp.tiempoAnios}
@@ -281,11 +279,10 @@ const V2_ContenedorProgramacionVacaciones = () => {
                                                 <select
                                                     value={emp.mes_vacaciones || ''}
                                                     onChange={(e) => handleMonthChange(emp.id, e.target.value)}
-                                                    className={`bg-slate-50 dark:bg-slate-900 border rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all ${
-                                                        emp.mes_vacaciones 
-                                                            ? 'border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-400' 
-                                                            : 'border-slate-200 dark:border-slate-700 text-slate-500'
-                                                    }`}
+                                                    className={`bg-slate-50 dark:bg-slate-900 border rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all ${emp.mes_vacaciones
+                                                        ? 'border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-400'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-500'
+                                                        }`}
                                                 >
                                                     <option value="">-- No calendarizada --</option>
                                                     {MESES.map(m => (

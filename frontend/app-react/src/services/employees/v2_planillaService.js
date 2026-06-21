@@ -1,4 +1,4 @@
-import v2_api from './v2_api';
+import v2_api from '../v2_api';
 
 /**
  * Obtiene el listado de todas las planillas registradas.

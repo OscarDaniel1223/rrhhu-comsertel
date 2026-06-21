@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { getPlanillas, getPlanillaById } from '../services/v2_planillaService';
+import { getPlanillas, getPlanillaById } from '../../../services/employees/v2_planillaService';
 
 // Nombres de los meses en español para la columna "Mes que ingreso"
 const NOMBRES_MESES = [
@@ -138,7 +138,7 @@ export default function V2_ContenedorPlanillaFormato() {
         // Crear contenido de CSV
         let csvContent = '\uFEFF'; // BOM para soportar tildes y caracteres especiales en Excel
         csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',') + '\n';
-        
+
         rows.forEach(row => {
             csvContent += row.map(val => {
                 if (typeof val === 'number') return val;
@@ -178,7 +178,7 @@ export default function V2_ContenedorPlanillaFormato() {
         return detalle.boletas.map((b) => {
             const fechaIngresoDate = parseFechaLocal(b.fecha_ingreso);
             const fechaFinPlanillaDate = parseFechaLocal(detalle.planilla.fecha_fin);
-            
+
             // Tiempo en la empresa (años)
             let tiempoAnios = 0;
             if (fechaIngresoDate && fechaFinPlanillaDate) {
@@ -194,7 +194,7 @@ export default function V2_ContenedorPlanillaFormato() {
             const vacacionesTotal = parseFloat(b.vacaciones) || 0.0;
             let montoVacaciones = 0.0;
             let boniVacaciones = 0.0;
-            
+
             if (vacacionesTotal > 0) {
                 montoVacaciones = vacacionesTotal / 1.30;
                 boniVacaciones = montoVacaciones * 0.30;
@@ -334,7 +334,8 @@ export default function V2_ContenedorPlanillaFormato() {
             </div>
 
             {/* Estilos CSS para impresion en formato horizontal (Landscape) */}
-            <style dangerouslySetInnerHTML={{__html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @media print {
                     /* Ocultar elementos innecesarios */
                     #root, .nav_contenedor, header, footer, .print-hidden, .print\\:hidden {
@@ -403,11 +404,10 @@ export default function V2_ContenedorPlanillaFormato() {
                                         <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 uppercase tracking-wider">
                                             {p.tipo_periodo}
                                         </span>
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                            p.estado === 'CERRADA' 
-                                                ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400' 
-                                                : 'bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400'
-                                        }`}>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.estado === 'CERRADA'
+                                            ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400'
+                                            : 'bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400'
+                                            }`}>
                                             {p.estado}
                                         </span>
                                     </div>
@@ -441,7 +441,7 @@ export default function V2_ContenedorPlanillaFormato() {
                             <i className="bi bi-chevron-left"></i>
                             Regresar a Planillas
                         </button>
-                        
+
                         {detalle && (
                             <div className="flex items-center gap-2 w-full sm:w-auto">
                                 <button

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import V2_FormularioCargo from './V2_FormularioCargo';
-import V2_TablaCargo from './V2_TablaCargo';
+import V2_TablaCargo from '../../tables/employees/V2_TablaCargo';
 
 export default function V2_ContenedorCargo() {
   const [activeTab, setActiveTab] = useState('tabla');
@@ -25,26 +25,24 @@ export default function V2_ContenedorCargo() {
               setSelectedCargo(null);
               setActiveTab('tabla');
             }}
-            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${
-              activeTab === 'tabla'
+            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${activeTab === 'tabla'
                 ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
                 : 'text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-            }`}
+              }`}
           >
             <i className="bi bi-table me-2"></i>
             Tabla de Cargos
           </button>
-          
+
           <button
             onClick={() => {
               setSelectedCargo(null);
               setActiveTab('formulario');
             }}
-            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${
-              activeTab === 'formulario'
+            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${activeTab === 'formulario'
                 ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
                 : 'text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-            }`}
+              }`}
           >
             <i className="bi bi-person-workspace me-2"></i>
             {selectedCargo ? 'Modificar Cargo' : 'Registrar Cargo'}
@@ -55,19 +53,19 @@ export default function V2_ContenedorCargo() {
       {/* Tab Content */}
       <div className="mt-8">
         {activeTab === 'tabla' ? (
-          <V2_TablaCargo 
+          <V2_TablaCargo
             onEditCargo={(cargo) => {
               setSelectedCargo(cargo);
               setActiveTab('formulario');
-            }} 
+            }}
           />
         ) : (
-          <V2_FormularioCargo 
-            selectedCargo={selectedCargo} 
+          <V2_FormularioCargo
+            selectedCargo={selectedCargo}
             onClearEdit={() => {
               setSelectedCargo(null);
               setActiveTab('tabla');
-            }} 
+            }}
           />
         )}
       </div>

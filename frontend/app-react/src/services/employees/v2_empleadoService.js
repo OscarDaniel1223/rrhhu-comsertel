@@ -1,4 +1,4 @@
-import v2_api from './v2_api';
+import v2_api from '../v2_api';
 
 export const getEmpleados = async () => {
     const response = await v2_api.get('/empleados');

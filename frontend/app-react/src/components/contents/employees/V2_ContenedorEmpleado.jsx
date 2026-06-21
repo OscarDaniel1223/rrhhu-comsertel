@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import V2_FormularioEmpleado from './V2_FormularioEmpleado';
-import V2_TablaEmpleado from './V2_TablaEmpleado';
+import V2_TablaEmpleado from '../../tables/employees/V2_TablaEmpleado';
 
 const V2_ContenedorEmpleado = () => {
   const [activeTab, setActiveTab] = useState('tabla');
@@ -23,26 +23,24 @@ const V2_ContenedorEmpleado = () => {
               setSelectedEmpleado(null);
               setActiveTab('tabla');
             }}
-            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${
-              activeTab === 'tabla'
-                ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-            }`}
+            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${activeTab === 'tabla'
+              ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+              }`}
           >
             <i className="bi bi-table me-2"></i>
             Tabla de Empleados
           </button>
-          
+
           <button
             onClick={() => {
               setSelectedEmpleado(null);
               setActiveTab('formulario');
             }}
-            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${
-              activeTab === 'formulario'
-                ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-            }`}
+            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 ${activeTab === 'formulario'
+              ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+              }`}
           >
             <i className="bi bi-person-plus me-2"></i>
             {selectedEmpleado ? 'Modificar Empleado' : 'Registrar Empleado'}
@@ -53,19 +51,19 @@ const V2_ContenedorEmpleado = () => {
       {/* Tab Content */}
       <div className="mt-8">
         {activeTab === 'tabla' ? (
-          <V2_TablaEmpleado 
+          <V2_TablaEmpleado
             onEditEmpleado={(emp) => {
               setSelectedEmpleado(emp);
               setActiveTab('formulario');
-            }} 
+            }}
           />
         ) : (
-          <V2_FormularioEmpleado 
-            selectedEmpleado={selectedEmpleado} 
+          <V2_FormularioEmpleado
+            selectedEmpleado={selectedEmpleado}
             onClearEdit={() => {
               setSelectedEmpleado(null);
               setActiveTab('tabla');
-            }} 
+            }}
           />
         )}
       </div>

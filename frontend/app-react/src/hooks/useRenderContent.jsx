@@ -1,13 +1,13 @@
 import Home from "../components/contents/Home";
 import Products from "../components/contents/Products";
 import Users from "../components/contents/Users";
-import V2_ContenedorEmpleado from "../components/V2_ContenedorEmpleado";
-import V2_ContenedorAusencia from "../components/V2_ContenedorAusencia";
-import V2_GestionAusencias from "../components/V2_GestionAusencias";
-import V2_ContenedorPlanilla from "../components/V2_ContenedorPlanilla";
-import V2_ContenedorPlanillaFormato from "../components/V2_ContenedorPlanillaFormato";
-import V2_ContenedorCargo from "../components/V2_ContenedorCargo";
-import V2_ContenedorProgramacionVacaciones from "../components/V2_ContenedorProgramacionVacaciones";
+import V2_ContenedorEmpleado from "../components/contents/employees/V2_ContenedorEmpleado";
+import V2_ContenedorAusencia from "../components/contents/employees/V2_ContenedorAusencia";
+import V2_GestionAusencias from "../components/contents/employees/V2_GestionAusencias";
+import V2_ContenedorPlanilla from "../components/contents/employees/V2_ContenedorPlanilla";
+import V2_ContenedorPlanillaFormato from "../components/contents/employees/V2_ContenedorPlanillaFormato";
+import V2_ContenedorCargo from "../components/contents/employees/V2_ContenedorCargo";
+import V2_ContenedorProgramacionVacaciones from "../components/contents/employees/V2_ContenedorProgramacionVacaciones";
 import { menuItems } from "../services/menuConfig";
 import { useAuth } from "../providers/AuthContext";
 

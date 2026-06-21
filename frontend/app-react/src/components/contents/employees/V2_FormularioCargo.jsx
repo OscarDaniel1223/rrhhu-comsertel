@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { createCargo, updateCargo } from '../services/v2_cargoService';
-import { getDepartamentos } from '../services/v2_departamentoService';
-import { showError, showSuccess, showQuestion, showLoading } from '../utils/alerts';
+import { createCargo, updateCargo } from '../../../services/employees/v2_cargoService';
+import { getDepartamentos } from '../../../services/employees/v2_departamentoService';
+import { showError, showSuccess, showQuestion, showLoading } from '../../../utils/alerts';
 
 export default function V2_FormularioCargo({ selectedCargo, onClearEdit }) {
   const [departamentos, setDepartamentos] = useState([]);
@@ -178,7 +178,7 @@ export default function V2_FormularioCargo({ selectedCargo, onClearEdit }) {
           >
             {selectedCargo ? 'Cancelar Edicion' : 'Volver a la Lista'}
           </button>
-          
+
           <button
             type="submit"
             disabled={loading}

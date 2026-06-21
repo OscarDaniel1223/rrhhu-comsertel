@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { createAusenciaIncapacidad, updateAusenciaIncapacidad } from '../services/v2_ausenciaService';
-import { getEmpleados } from '../services/v2_empleadoService';
+import { createAusenciaIncapacidad, updateAusenciaIncapacidad } from '../../../services/employees/v2_ausenciaService';
+import { getEmpleados } from '../../../services/employees/v2_empleadoService';
 
 const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
   const [empleados, setEmpleados] = useState([]);
@@ -44,7 +44,7 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
           // Filtrar solo empleados activos para registros nuevos
           const todos = response.data;
           const activos = todos.filter(emp => emp.estado === 'ACTIVO');
-          
+
           // Si estamos editando y el empleado seleccionado está inactivo, lo agregamos a la lista
           if (selectedIncidencia && selectedIncidencia.id_empleado) {
             const empSeleccionado = todos.find(emp => String(emp.id) === String(selectedIncidencia.id_empleado));
@@ -52,7 +52,7 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
               activos.push(empSeleccionado);
             }
           }
-          
+
           setEmpleados(activos);
         }
       } catch (error) {
@@ -144,7 +144,7 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
   return (
     <div className="max-w-xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 md:p-8 transition-colors">
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        
+
         {/* Colaborador */}
         <div className="flex flex-col gap-1.5 text-left">
           <label htmlFor="id_empleado" className="text-sm font-semibold text-slate-700 dark:text-slate-300">

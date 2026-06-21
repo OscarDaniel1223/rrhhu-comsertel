@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Swal from 'sweetalert2';
-import { getPlanillas, getPlanillaById, generarPlanilla, cerrarPlanilla, deletePlanilla } from '../services/v2_planillaService';
-import { getEmpleados } from '../services/v2_empleadoService';
+import { getPlanillas, getPlanillaById, generarPlanilla, cerrarPlanilla, deletePlanilla } from '../../../services/employees/v2_planillaService';
+import { getEmpleados } from '../../../services/employees/v2_empleadoService';
 
 /**
  * Procesa una fecha para evitar el desfase horario y los problemas de Invalid Date
@@ -51,7 +51,8 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
 
     return createPortal(
         <div className="boleta-print-modal fixed inset-0 z-[1060] overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:inset-auto print:backdrop-blur-none">
-            <style dangerouslySetInnerHTML={{__html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @media print {
                     /* Ocultar la aplicacion React entera y otros overlays */
                     #root, body > div:not(.boleta-print-modal) {
@@ -93,7 +94,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                 }
             `}} />
             <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none print:w-full print:h-full print:p-0">
-                
+
                 {/* Cabecera del Modal (Oculta al imprimir) */}
                 <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 print-hidden bg-slate-50 dark:bg-slate-900/50 print:hidden">
                     <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 m-0 text-lg">
@@ -120,7 +121,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                 {/* Contenido Imprimible de la Boleta */}
                 <div className="p-8 overflow-y-auto print:overflow-visible print:p-0 flex-1 bg-white text-black dark:bg-slate-900 dark:text-white print:bg-white print:text-black">
                     <div className="border-2 border-slate-300 p-6 rounded-xl space-y-6 print:border print:border-slate-400 print:p-4 print:space-y-4 print:rounded-none">
-                        
+
                         {/* Membrete de la Empresa */}
                         <div className="text-center pb-4 border-b border-slate-200 print:border-slate-300">
                             <h2 className="text-2xl font-bold uppercase tracking-wider text-slate-950 dark:text-white print:text-black">COMSERTEL, S.A. DE C.V.</h2>
@@ -152,7 +153,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
 
                         {/* Detalle Financiero (Ingresos vs Deducciones) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 print:gap-4 items-start">
-                            
+
                             {/* Ingresos / Devengados */}
                             <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
                                 <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
@@ -363,7 +364,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
         boletas.forEach((b) => {
             const totalDeducciones = parseFloat(b.isss_empleado) + parseFloat(b.afp_empleado) + parseFloat(b.renta) + (parseFloat(b.descuento_ausencias) || 0.0);
             const salarioProporcional = planilla.tipo_periodo === 'QUINCENAL' ? b.salario_base / 2.0 : b.salario_base;
-            
+
             boletasHTML += `
                 <div class="boleta-page" style="page-break-after: always; padding: 20px; font-family: sans-serif; color: black; background: white; max-width: 800px; margin: 0 auto;">
                     <div style="border: 2px solid #ccc; padding: 20px; border-radius: 8px;">
@@ -500,7 +501,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 </div>
             `;
         });
-        
+
         printWindow.document.write(`
             <html>
                 <head>
@@ -552,11 +553,17 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
             'AFP Patrono',
             'INCAF Patrono'
         ];
-        
+
         const rows = boletas.map((b) => {
             const totalDeducciones = parseFloat(b.isss_empleado) + parseFloat(b.afp_empleado) + parseFloat(b.renta) + (parseFloat(b.descuento_ausencias) || 0.0);
-            const salarioProporcional = planilla.tipo_periodo === 'QUINCENAL' ? b.salario_base / 2.0 : b.salario_base;
-            
+
+            const salarioBaseNumerico = Number(b.salario_base) || 0;
+            const salarioProporcional = planilla.tipo_periodo === 'QUINCENAL'
+                ? salarioBaseNumerico / 2.0
+                : salarioBaseNumerico;
+
+
+
             return [
                 `"${b.nombres} ${b.apellidos}"`,
                 `"${b.cargo}"`,
@@ -589,7 +596,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
         link.setAttribute("download", `Planilla_${planilla.id}_Periodo_${planilla.fecha_inicio}_al_${planilla.fecha_fin}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
-        
+
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
@@ -611,7 +618,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
 
     return (
         <div className="space-y-6">
-            
+
             {/* Cabecera del detalle */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <button
@@ -622,9 +629,8 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                     Volver al listado
                 </button>
                 <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                        esBorrador ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                    }`}>
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${esBorrador ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                        }`}>
                         Estado: {planilla.estado}
                     </span>
                     <button
@@ -670,7 +676,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                     <h3 className="font-bold text-md text-slate-800 dark:text-white pb-3 uppercase text-xs tracking-wider">
                         Consolidado General de Costos y Prestaciones (Periodo)
                     </h3>
-                    
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-sm">
                         {/* Retenciones Empleados */}
                         <div className="space-y-3">
@@ -783,7 +789,7 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                                     </tr>
                                 );
                             })}
-                            
+
                             {/* Fila de Totales de la Tabla (Tarea 13) */}
                             <tr className="bg-slate-50/80 dark:bg-slate-800/80 font-bold border-t-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
                                 <td className="py-4 px-6" colSpan="3">Totales de la Planilla</td>
@@ -867,7 +873,7 @@ const PlanillaGenerarTab = ({ onBack }) => {
     // Actualizar automáticamente fechaInicio y fechaFin al cambiar los parámetros del período
     useEffect(() => {
         if (!mesSeleccionado) return;
-        
+
         const [anioStr, mesStr] = mesSeleccionado.split('-');
         const anio = parseInt(anioStr, 10);
         const mes = parseInt(mesStr, 10); // 1 a 12
@@ -876,7 +882,7 @@ const PlanillaGenerarTab = ({ onBack }) => {
             const inicio = `${anioStr}-${mesStr}-01`;
             const ultimoDia = new Date(anio, mes, 0).getDate();
             const fin = `${anioStr}-${mesStr}-${String(ultimoDia).padStart(2, '0')}`;
-            
+
             setFechaInicio(inicio);
             setFechaFin(fin);
         } else if (tipoPeriodo === 'QUINCENAL') {
@@ -907,12 +913,12 @@ const PlanillaGenerarTab = ({ onBack }) => {
                     // Inicializar novedades
                     const initNov = {};
                     activos.forEach(e => {
-                        initNov[e.id] = { 
-                            beneficios: '', 
-                            vacaciones: '', 
-                            viaticos: '', 
-                            horas_extras_diurnas_qty: '', 
-                            horas_extras_nocturnas_qty: '' 
+                        initNov[e.id] = {
+                            beneficios: '',
+                            vacaciones: '',
+                            viaticos: '',
+                            horas_extras_diurnas_qty: '',
+                            horas_extras_nocturnas_qty: ''
                         };
                     });
                     setNovedades(initNov);
@@ -934,7 +940,7 @@ const PlanillaGenerarTab = ({ onBack }) => {
 
     useEffect(() => {
         if (empleados.length === 0) return;
-        
+
         let mesInt = 0;
         if (mesSeleccionado) {
             const partes = mesSeleccionado.split('-');
@@ -944,15 +950,15 @@ const PlanillaGenerarTab = ({ onBack }) => {
                 mesInt = parseInt(mesSeleccionado, 10);
             }
         }
-        
+
         setNovedades(prev => {
             const updated = { ...prev };
             empleados.forEach(emp => {
                 const cumpleMes = emp.mes_vacaciones !== null && emp.mes_vacaciones === mesInt;
-                const autoVal = cumpleMes 
+                const autoVal = cumpleMes
                     ? Math.round(((parseFloat(emp.salario_base) / 2.0) * 1.30) * 100) / 100
                     : 0.00;
-                
+
                 updated[emp.id] = {
                     ...(updated[emp.id] || {
                         beneficios: '',
@@ -1075,11 +1081,11 @@ const PlanillaGenerarTab = ({ onBack }) => {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            
+
             {/* Cabecera y Rango del período */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl space-y-4 shadow-sm text-left">
                 <h3 className="font-bold text-slate-800 dark:text-white text-md uppercase text-xs tracking-wider border-b border-slate-100 dark:border-slate-800 pb-3">Configurar Período de Planilla</h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo de Periodo</label>
@@ -1210,11 +1216,10 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
-                                                <span className={`text-xs font-semibold ${
-                                                    novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
-                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-md' 
-                                                        : 'text-slate-400 dark:text-slate-500 font-medium'
-                                                }`}>
+                                                <span className={`text-xs font-semibold ${novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
+                                                    ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-md'
+                                                    : 'text-slate-400 dark:text-slate-500 font-medium'
+                                                    }`}>
                                                     {novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
                                                         ? formatMoneda(novedades[emp.id].vacaciones)
                                                         : 'No programadas'}
@@ -1243,11 +1248,10 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                                     onChange={(e) => handleNovedadChange(emp.id, 'horas_extras_diurnas_qty', e.target.value)}
                                                     className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
                                                 />
-                                                <span className={`text-xs font-semibold ${
-                                                    novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
-                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
-                                                        : 'text-slate-400 dark:text-slate-500'
-                                                }`}>
+                                                <span className={`text-xs font-semibold ${novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
+                                                    ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
+                                                    : 'text-slate-400 dark:text-slate-500'
+                                                    }`}>
                                                     {novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
                                                         ? formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_diurnas_qty) * (parseFloat(emp.salario_base) / 120.0)) * 100) / 100)
                                                         : 'No aplica'}
@@ -1265,11 +1269,10 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                                     onChange={(e) => handleNovedadChange(emp.id, 'horas_extras_nocturnas_qty', e.target.value)}
                                                     className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
                                                 />
-                                                <span className={`text-xs font-semibold ${
-                                                    novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
-                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
-                                                        : 'text-slate-400 dark:text-slate-500'
-                                                }`}>
+                                                <span className={`text-xs font-semibold ${novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
+                                                    ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
+                                                    : 'text-slate-400 dark:text-slate-500'
+                                                    }`}>
                                                     {novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
                                                         ? formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) * (parseFloat(emp.salario_base) / 96.0)) * 100) / 100)
                                                         : 'No aplica'}
@@ -1417,7 +1420,7 @@ const PlanillaListTab = ({ onVerDetalle }) => {
 
     const planillasFiltradas = planillasList.filter((p) => {
         if (filtroFrecuencia !== 'TODOS' && p.tipo_periodo !== filtroFrecuencia) return false;
-        
+
         const fecha = parseFechaLocal(p.fecha_inicio);
         if (!fecha) return false;
 
@@ -1527,9 +1530,8 @@ const PlanillaListTab = ({ onVerDetalle }) => {
                                         <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{p.tipo_periodo}</td>
                                         <td className="py-4 px-6 text-slate-400 font-medium">{new Date(p.creado_en).toLocaleString()}</td>
                                         <td className="py-4 px-6">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                                                esBorrador ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300' : 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-300'
-                                            }`}>
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${esBorrador ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300' : 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-300'
+                                                }`}>
                                                 {p.estado}
                                             </span>
                                         </td>
@@ -1542,12 +1544,12 @@ const PlanillaListTab = ({ onVerDetalle }) => {
                                                     <i className="bi bi-eye mr-1.5"></i>
                                                     Ver Detalle
                                                 </button>
-                                                    <button
-                                                        onClick={() => handleDelete(p.id)}
-                                                        className="border border-red-600 hover:bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
-                                                    >
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
+                                                <button
+                                                    onClick={() => handleDelete(p.id)}
+                                                    className="border border-red-600 hover:bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -1580,7 +1582,7 @@ const V2_ContenedorPlanilla = () => {
 
     return (
         <div className="m-4 md:m-6 py-4 space-y-6 print:m-0 print:p-0">
-            
+
             {/* Cabecera Principal (Oculta al imprimir boleta) */}
             <div className="flex flex-col items-center justify-center text-center print:hidden">
                 <div>
@@ -1598,26 +1600,24 @@ const V2_ContenedorPlanilla = () => {
                                 setViewMode('list');
                                 setSelectedPlanillaId(null);
                             }}
-                            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 cursor-pointer flex items-center ${
-                                viewMode === 'list'
-                                    ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
-                                    : 'text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                            }`}
+                            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 cursor-pointer flex items-center ${viewMode === 'list'
+                                ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
+                                : 'text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                }`}
                         >
                             <i className="bi bi-clock-history me-2"></i>
                             Historial de Planillas
                         </button>
-                        
+
                         <button
                             onClick={() => {
                                 setViewMode('generar');
                                 setSelectedPlanillaId(null);
                             }}
-                            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 cursor-pointer flex items-center ${
-                                viewMode === 'generar'
-                                    ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
-                                    : 'text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                            }`}
+                            className={`whitespace-nowrap py-2.5 px-6 rounded-[15px] font-medium text-sm transition-all duration-300 cursor-pointer flex items-center ${viewMode === 'generar'
+                                ? 'bg-white dark:bg-slate-700 text-black dark:text-white shadow-sm'
+                                : 'text-slate-500 hover:text-black dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                }`}
                         >
                             <i className="bi bi-plus-circle me-2"></i>
                             Generar Planilla
