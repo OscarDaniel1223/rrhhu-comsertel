@@ -4,7 +4,7 @@ exports.getEmpleados = async (req, res) => {
     try {
         const query = `
             SELECT e.id, e.dui, e.nit, e.nombres, e.apellidos, e.fecha_ingreso, e.id_cargo, e.estado, e.creado_en,
-                   e.mes_vacaciones,
+                   e.mes_vacaciones, e.fecha_aguinaldo,
                    c.titulo AS cargo, c.salario_base, d.nombre AS departamento
             FROM empleados e
             LEFT JOIN cargos c ON e.id_cargo = c.id
@@ -31,7 +31,7 @@ exports.getEmpleadoById = async (req, res) => {
         const { id } = req.params;
         const query = `
             SELECT e.id, e.dui, e.nit, e.nombres, e.apellidos, e.fecha_ingreso, e.id_cargo, e.estado, e.creado_en,
-                   e.mes_vacaciones,
+                   e.mes_vacaciones, e.fecha_aguinaldo,
                    c.titulo AS cargo, c.salario_base, d.nombre AS departamento
             FROM empleados e
             LEFT JOIN cargos c ON e.id_cargo = c.id
@@ -254,6 +254,41 @@ exports.programarVacacion = async (req, res) => {
             status: 'error',
             error: 'INTERNAL_SERVER_ERROR',
             message: 'Error interno del servidor al programar las vacaciones'
+        });
+    }
+};
+
+exports.programarAguinaldo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { fecha_aguinaldo } = req.body; // Formato YYYY-MM-DD o null
+        
+        const fechaVal = fecha_aguinaldo === null || fecha_aguinaldo === '' ? null : fecha_aguinaldo;
+        
+        const [result] = await db.query(
+            'UPDATE empleados SET fecha_aguinaldo = ? WHERE id = ?',
+            [fechaVal, id]
+        );
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                status: 'error',
+                error: 'NOT_FOUND',
+                message: 'Empleado no encontrado'
+            });
+        }
+        
+        res.json({
+            status: 'success',
+            data: { id, fecha_aguinaldo: fechaVal },
+            message: 'Fecha de aguinaldo programada exitosamente'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: 'error',
+            error: 'INTERNAL_SERVER_ERROR',
+            message: 'Error interno del servidor al programar la fecha de aguinaldo'
         });
     }
 };

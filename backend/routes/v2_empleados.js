@@ -7,7 +7,8 @@ const {
     createEmpleado,
     updateEmpleado,
     deleteEmpleado,
-    programarVacacion
+    programarVacacion,
+    programarAguinaldo
 } = require('../controllers/v2_empleadosController');
 
 router.get('/empleados', getEmpleados);
@@ -16,5 +17,6 @@ router.post('/empleados', createEmpleado);
 router.put('/empleados/:id', updateEmpleado);
 router.delete('/empleados/:id', deleteEmpleado);
 router.put('/empleados/:id/vacacion-mes', programarVacacion);
+router.put('/empleados/:id/aguinaldo-fecha', programarAguinaldo);
 
 module.exports = router;

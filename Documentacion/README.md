@@ -18,6 +18,8 @@ Estandares de codificacion, diseno del sistema y especificaciones de componentes
 * [Nuevo Modelo BD](02-desarrollo-arquitectura/Nuevo-Modelo-BD.md): Diagramas y diseno de la base de datos relacional.
 * [Solucion Fechas Invalidas](02-desarrollo-arquitectura/Solucion-Fechas-Invalidas.md): Analisis y arreglo de problemas de fechas locales en el listado de planillas.
 * [Solucion Error Generar Planilla](02-desarrollo-arquitectura/Solucion-Error-Generar-Planilla.md): Diagnostico y solucion al error HTTP 500 al generar planilla y boletas.
+* [Vacaciones Diciembre Provisional Detalles](02-desarrollo-arquitectura/v2-vacaciones-diciembre-provisional-detalles.md): Detalles tecnicos y de desarrollo sobre el calculo provisional de vacaciones.
+* [Programacion Aguinaldos Detalles](02-desarrollo-arquitectura/v2-programacion-aguinaldos-detalles.md): Detalles tecnicos sobre la calendarizacion y programacion de aguinaldos.
 
 ### 3. Reglas de Negocio y Logica Fiscal/Laboral
 Documentos legales, matematicos y de formulacion que describen el calculo de planillas y prestaciones.
@@ -27,6 +29,8 @@ Documentos legales, matematicos y de formulacion que describen el calculo de pla
 * [Manual Incapacidades ISSS](03-reglas-negocio/Manual-Incapacidades-ISSS.md): Procedimiento de pago y subsidio por incapacidades medicas del ISSS.
 * [Migracion Decretos (Referencia SQL)](03-reglas-negocio/Migracion-Decretos-499-893.sql): Script de migracion de base de datos asociado a las planillas especiales.
 * [Tecnica ISR 2025](03-reglas-negocio/Tecnica-ISR-2025.md): Tabla de retenciones del Impuesto Sobre la Renta y reglas aplicables.
+* [Vacaciones Diciembre Provisional Reglas](03-reglas-negocio/04-vacaciones-diciembre-provisional.md): Reglas de negocio del calculo provisional de vacaciones y bonificacion.
+* [Programacion Aguinaldos Reglas](03-reglas-negocio/05-programacion-aguinaldos.md): Reglas de negocio sobre la programacion y calculo de aguinaldos.
 
 ### 4. Guias de Usuario y Procesos Operativos
 Manuales de usuario y procesos de administracion interna.

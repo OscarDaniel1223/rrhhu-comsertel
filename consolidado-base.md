@@ -50,6 +50,7 @@ CREATE TABLE empleados (
    id_cargo INT NOT NULL,
    estado ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO',
    mes_vacaciones INT DEFAULT NULL, -- Mes del año (1-12) conciliado para el pago de vacaciones
+   fecha_aguinaldo DATE DEFAULT NULL, -- Fecha específica conciliada para el pago de aguinaldo
    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY (id_cargo) REFERENCES cargos(id)
 );
@@ -89,8 +90,14 @@ CREATE TABLE boletas_pago (
    afp_empleado DECIMAL(10, 2) NOT NULL,
    renta DECIMAL(10, 2) NOT NULL,
    descuento_ausencias DECIMAL(10, 2) DEFAULT 0.00,
-   -- Prestaciones Economicas Extraordinarias (Exenta de ISSS/AFP/Renta)
+   -- Prestaciones Economicas Extraordinarias
    quincena_veinticinco DECIMAL(10, 2) DEFAULT 0.00,
+   beneficios DECIMAL(10, 2) DEFAULT 0.00,
+   vacaciones DECIMAL(10, 2) DEFAULT 0.00,
+   aguinaldo DECIMAL(10, 2) DEFAULT 0.00,
+   viaticos DECIMAL(10, 2) DEFAULT 0.00,
+   horas_extras_diurnas DECIMAL(10, 2) DEFAULT 0.00,
+   horas_extras_nocturnas DECIMAL(10, 2) DEFAULT 0.00,
    -- Total a pagar
    salario_neto DECIMAL(10, 2) NOT NULL,
    -- Costeo Patronal (Obligaciones de la empresa)

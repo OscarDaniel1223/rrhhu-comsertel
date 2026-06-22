@@ -246,7 +246,7 @@ const generarPlanilla = async (req, res) => {
 
         // 2. Obtener los empleados activos
         const [empleados] = await connection.query(
-            `SELECT e.id, e.fecha_ingreso, e.mes_vacaciones, c.salario_base 
+            `SELECT e.id, e.fecha_ingreso, e.mes_vacaciones, e.fecha_aguinaldo, c.salario_base 
              FROM empleados e
              JOIN cargos c ON e.id_cargo = c.id
              WHERE e.estado = 'ACTIVO'`
@@ -320,19 +320,34 @@ const generarPlanilla = async (req, res) => {
                 console.error(`Error calculando Quincena Veinticinco para empleado ${id_empleado}:`, err);
             }
 
-            // Calcular Aguinaldo si aplica (Rango legal permitido: entre el 20 de octubre y el 20 de diciembre de cada año)
+            // Calcular Aguinaldo si la fecha programada cae en el periodo de la planilla
             let aguinaldoVal = 0.0;
-            try {
-                const fechaCorte = new Date(fecha_fin + 'T00:00:00');
-                const anioCorte = fechaCorte.getFullYear();
-                const inicioRango = new Date(`${anioCorte}-10-20T00:00:00`);
-                const finRango = new Date(`${anioCorte}-12-20T00:00:00`);
+            if (empleado.fecha_aguinaldo) {
+                try {
+                    const parseFecha = (f) => {
+                        if (!f) return null;
+                        if (f instanceof Date) {
+                            return new Date(f.getFullYear(), f.getMonth(), f.getDate());
+                        }
+                        const str = f.toString().split('T')[0];
+                        const partes = str.split('-');
+                        if (partes.length === 3) {
+                            return new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
+                        }
+                        const d = new Date(f);
+                        return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                    };
 
-                if (fechaCorte >= inicioRango && fechaCorte <= finRango) {
-                    aguinaldoVal = V2_PayrollService.calcularAguinaldo(salarioBase, fechaIngreso, fecha_fin);
+                    const fAguinaldo = parseFecha(empleado.fecha_aguinaldo);
+                    const fInicio = parseFecha(fecha_inicio);
+                    const fFin = parseFecha(fecha_fin);
+
+                    if (fAguinaldo && fInicio && fFin && fAguinaldo >= fInicio && fAguinaldo <= fFin) {
+                        aguinaldoVal = V2_PayrollService.calcularAguinaldo(salarioBase, fechaIngreso, fecha_fin);
+                    }
+                } catch (err) {
+                    console.error(`Error calculando Aguinaldo para empleado ${id_empleado}:`, err);
                 }
-            } catch (err) {
-                console.error(`Error calculando Aguinaldo para empleado ${id_empleado}:`, err);
             }
 
             // Calcular Vacaciones si el mes de la planilla coincide con el mes conciliado de goce

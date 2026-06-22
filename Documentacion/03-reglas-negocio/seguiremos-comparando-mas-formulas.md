@@ -77,6 +77,8 @@ Analizaremos las formulas de Excel utilizadas para el calculo de vacaciones y la
 ### A. Formula de Excel para Monto de Vacaciones:
 `=SI($H6=12,(($F6/2)*30%),0)`
 
+Salario base / 2 *30
+
 #### Desglose y Significado:
 1. **Condicion `$H6=12`**: Evalua si el mes de ingreso del colaborador es diciembre (mes 12).
 2. **Caso Verdadero `(($F6/2)*30%)`**:

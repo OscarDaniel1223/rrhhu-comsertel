@@ -38,6 +38,42 @@ const formatMoneda = (valor) => {
 };
 
 /**
+ * Calcula el aguinaldo anual de ley (Art. 196-198 Código de Trabajo de El Salvador) para la UI.
+ */
+const calcularAguinaldoFrontend = (salarioBase, fechaIngreso, fechaCalculoInput) => {
+    const fIngreso = parseFechaLocal(fechaIngreso);
+    let fCalculo = parseFechaLocal(fechaCalculoInput || new Date());
+    if (!fIngreso || !fCalculo) return 0.00;
+
+    const anioCalculo = fCalculo.getFullYear();
+    const fechaAcreditacion = new Date(anioCalculo, 9, 20); // 20 de Octubre
+
+    if (fCalculo >= fechaAcreditacion) {
+        fCalculo = fechaAcreditacion;
+    }
+
+    const diffTime = fCalculo.getTime() - fIngreso.getTime();
+    if (diffTime < 0) return 0.00;
+
+    const diasAntiguedad = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    const aniosAntiguedad = diasAntiguedad / 365.25;
+
+    const salarioDia = parseFloat(salarioBase) / 30.0;
+
+    if (aniosAntiguedad < 1.0) {
+        const diasProporcionalesAguinaldo = (diasAntiguedad / 365.0) * 15.0;
+        const aguinaldoProporcional = diasProporcionalesAguinaldo * salarioDia;
+        return Math.round(aguinaldoProporcional * 100) / 100;
+    } else if (aniosAntiguedad < 3.0) {
+        return Math.round((salarioDia * 15.0) * 100) / 100;
+    } else if (aniosAntiguedad < 10.0) {
+        return Math.round((salarioDia * 19.0) * 100) / 100;
+    } else {
+        return Math.round((salarioDia * 21.0) * 100) / 100;
+    }
+};
+
+/**
  * Modal para visualizar e imprimir la boleta de pago individual del empleado.
  */
 const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
@@ -1171,9 +1207,31 @@ const PlanillaGenerarTab = ({ onBack }) => {
 
             {/* Listado de Novedades por Empleado */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800 text-left">
-                    <h3 className="font-bold text-slate-800 dark:text-white text-md uppercase text-xs tracking-wider m-0">Registrar Novedades y Prestaciones Adicionales</h3>
-                    <p className="text-slate-400 text-xs mt-1">Ingresa bonificaciones o pagos de vacaciones que deban liquidarse en esta planilla (opcional).</p>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 text-left space-y-3">
+                    <div>
+                        <h3 className="font-bold text-slate-800 dark:text-white text-md uppercase text-xs tracking-wider m-0">Registrar Novedades y Prestaciones Adicionales</h3>
+                        <p className="text-slate-400 text-xs mt-1">Ingresa bonificaciones o pagos de vacaciones que deban liquidarse en esta planilla (opcional).</p>
+                    </div>
+                    {(() => {
+                        const empleadosConAguinaldo = empleados.filter(emp => {
+                            if (!emp.fecha_aguinaldo) return false;
+                            const fAguinaldo = parseFechaLocal(emp.fecha_aguinaldo);
+                            const fInicio = parseFechaLocal(fechaInicio);
+                            const fFin = parseFechaLocal(fechaFin);
+                            return fAguinaldo && fInicio && fFin && fAguinaldo >= fInicio && fAguinaldo <= fFin;
+                        });
+                        if (empleadosConAguinaldo.length > 0) {
+                            return (
+                                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg flex items-start gap-2 text-left">
+                                    <i className="bi bi-info-circle text-emerald-600 dark:text-emerald-400 mt-0.5 text-sm"></i>
+                                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300 leading-normal font-medium">
+                                        Se han detectado {empleadosConAguinaldo.length} colaboradores con pago de aguinaldo programado para este período. El sistema procesará sus aguinaldos de forma automática.
+                                    </p>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
                 </div>
 
                 {loadingEmpleados ? (
@@ -1190,53 +1248,86 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                     <th className="py-4 px-6">Salario Base</th>
                                     <th className="py-4 px-6">Beneficios / Comisiones ($)</th>
                                     <th className="py-4 px-6">Vacaciones a Pagar ($)</th>
+                                    <th className="py-4 px-6">Aguinaldo Programado ($)</th>
                                     <th className="py-4 px-6">Viáticos ($)</th>
                                     <th className="py-4 px-6">Horas Extras Diurnas (Hrs)</th>
                                     <th className="py-4 px-6">Horas Extras Nocturnas (Hrs)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                                {empleados.map((emp) => (
-                                    <tr key={emp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                        <td className="py-4 px-6 font-semibold text-slate-800 dark:text-white">
-                                            {emp.nombres} {emp.apellidos}
-                                        </td>
-                                        <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{emp.cargo}</td>
-                                        <td className="py-4 px-6 font-mono font-medium">{formatMoneda(emp.salario_base)}</td>
-                                        <td className="py-4 px-6">
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                placeholder="0.00"
-                                                value={novedades[emp.id]?.beneficios || ''}
-                                                onChange={(e) => handleNovedadChange(emp.id, 'beneficios', e.target.value)}
-                                                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                            />
-                                        </td>
-                                        <td className="py-4 px-6">
-                                            <div className="flex items-center gap-3">
-                                                <span className={`text-xs font-semibold ${novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
-                                                    ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-md'
-                                                    : 'text-slate-400 dark:text-slate-500 font-medium'
-                                                    }`}>
-                                                    {novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
-                                                        ? formatMoneda(novedades[emp.id].vacaciones)
-                                                        : 'No programadas'}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-6">
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                placeholder="0.00"
-                                                value={novedades[emp.id]?.viaticos || ''}
-                                                onChange={(e) => handleNovedadChange(emp.id, 'viaticos', e.target.value)}
-                                                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                            />
-                                        </td>
+                                {empleados.map((emp) => {
+                                    // Evaluar si tiene aguinaldo en este periodo
+                                    let aguinaldoTexto = 'No programado';
+                                    let aguinaldoValor = 0.00;
+                                    let esAguinaldoEnPeriodo = false;
+
+                                    if (emp.fecha_aguinaldo) {
+                                        const fAguinaldo = parseFechaLocal(emp.fecha_aguinaldo);
+                                        const fInicio = parseFechaLocal(fechaInicio);
+                                        const fFin = parseFechaLocal(fechaFin);
+
+                                        if (fAguinaldo && fInicio && fFin) {
+                                            if (fAguinaldo >= fInicio && fAguinaldo <= fFin) {
+                                                esAguinaldoEnPeriodo = true;
+                                                aguinaldoValor = calcularAguinaldoFrontend(emp.salario_base, emp.fecha_ingreso, fechaFin);
+                                                aguinaldoTexto = `${formatFechaLocal(emp.fecha_aguinaldo)} (${formatMoneda(aguinaldoValor)})`;
+                                            } else {
+                                                aguinaldoTexto = `Fuera de período (${formatFechaLocal(emp.fecha_aguinaldo)})`;
+                                            }
+                                        }
+                                    }
+
+                                    return (
+                                        <tr key={emp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                            <td className="py-4 px-6 font-semibold text-slate-800 dark:text-white">
+                                                {emp.nombres} {emp.apellidos}
+                                            </td>
+                                            <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{emp.cargo}</td>
+                                            <td className="py-4 px-6 font-mono font-medium">{formatMoneda(emp.salario_base)}</td>
+                                            <td className="py-4 px-6">
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    placeholder="0.00"
+                                                    value={novedades[emp.id]?.beneficios || ''}
+                                                    onChange={(e) => handleNovedadChange(emp.id, 'beneficios', e.target.value)}
+                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                                />
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-xs font-semibold ${novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
+                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-md'
+                                                        : 'text-slate-400 dark:text-slate-500 font-medium'
+                                                        }`}>
+                                                        {novedades[emp.id]?.vacaciones && parseFloat(novedades[emp.id].vacaciones) > 0
+                                                            ? formatMoneda(novedades[emp.id].vacaciones)
+                                                            : 'No programadas'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-xs font-semibold ${esAguinaldoEnPeriodo
+                                                        ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-md'
+                                                        : 'text-slate-400 dark:text-slate-500 font-medium'
+                                                        }`}>
+                                                        {aguinaldoTexto}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    placeholder="0.00"
+                                                    value={novedades[emp.id]?.viaticos || ''}
+                                                    onChange={(e) => handleNovedadChange(emp.id, 'viaticos', e.target.value)}
+                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                                />
+                                            </td>
                                         <td className="py-4 px-6">
                                             <div className="flex flex-col gap-1.5">
                                                 <input
@@ -1280,7 +1371,8 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

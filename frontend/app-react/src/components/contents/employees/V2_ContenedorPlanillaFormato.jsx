@@ -196,8 +196,28 @@ export default function V2_ContenedorPlanillaFormato() {
             let boniVacaciones = 0.0;
 
             if (vacacionesTotal > 0) {
-                montoVacaciones = vacacionesTotal / 1.30;
-                boniVacaciones = montoVacaciones * 0.30;
+                const mesIngresoNum = fechaIngresoDate ? (fechaIngresoDate.getMonth() + 1) : 0;
+                
+                // Monto de vacaciones general: Salario base / 2 * 30%
+                montoVacaciones = (sueldoSalario / 2.0) * 0.30;
+
+                if (mesIngresoNum === 12) {
+                    if (tiempoAnios >= 5.0) {
+                        boniVacaciones = (sueldoSalario / 2.0) * 0.20;
+                    } else if (tiempoAnios >= 2.0 && tiempoAnios < 5.0) {
+                        boniVacaciones = (sueldoSalario / 2.0) * 0.15;
+                    } else {
+                        boniVacaciones = 0.0;
+                    }
+                } else {
+                    boniVacaciones = 0.0;
+                }
+
+                // Ajuste para consistencia con montos proporcionales
+                const sumaEsperada = parseFloat((montoVacaciones + boniVacaciones).toFixed(2));
+                if (Math.abs(vacacionesTotal - sumaEsperada) > 0.05 && boniVacaciones === 0) {
+                    montoVacaciones = vacacionesTotal;
+                }
             }
 
             // Monto Cotizable

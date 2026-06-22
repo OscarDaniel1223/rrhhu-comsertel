@@ -29,3 +29,8 @@ export const programarVacacion = async (id, mesVacaciones) => {
     const response = await v2_api.put(`/empleados/${id}/vacacion-mes`, { mes_vacaciones: mesVacaciones });
     return response.data;
 };
+
+export const programarAguinaldo = async (id, fechaAguinaldo) => {
+    const response = await v2_api.put(`/empleados/${id}/aguinaldo-fecha`, { fecha_aguinaldo: fechaAguinaldo });
+    return response.data;
+};

@@ -8,6 +8,7 @@ import V2_ContenedorPlanilla from "../components/contents/employees/V2_Contenedo
 import V2_ContenedorPlanillaFormato from "../components/contents/employees/V2_ContenedorPlanillaFormato";
 import V2_ContenedorCargo from "../components/contents/employees/V2_ContenedorCargo";
 import V2_ContenedorProgramacionVacaciones from "../components/contents/employees/V2_ContenedorProgramacionVacaciones";
+import V2_ContenedorProgramacionAguinaldo from "../components/contents/employees/V2_ContenedorProgramacionAguinaldo";
 import { menuItems } from "../services/menuConfig";
 import { useAuth } from "../providers/AuthContext";
 
@@ -61,6 +62,9 @@ export default function useRenderContent(activeItem) {
       break;
     case "vacation_programming":
       content = <V2_ContenedorProgramacionVacaciones />;
+      break;
+    case "bono_programming":
+      content = <V2_ContenedorProgramacionAguinaldo />;
       break;
     case "payroll_format":
       content = <V2_ContenedorPlanillaFormato />;

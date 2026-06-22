@@ -202,16 +202,42 @@ class V2_PayrollService {
    * @returns {number} Monto a pagar por vacaciones.
    */
   static calcularVacaciones(salarioBase, fechaIngreso, fechaCalculo = new Date(), cumpleAnioContinuo = true, diasTrabajadosEnAnio = 365) {
+    const fIngreso = parseFechaSinTimezone(fechaIngreso);
+    const fCalculo = parseFechaSinTimezone(fechaCalculo);
+    
+    // Mes de ingreso es diciembre (mes 11 en JS Date)
+    const esDiciembre = fIngreso.getMonth() === 11;
+
+    // Monto de vacaciones general solicitado: Salario base / 2 * 30%
+    const montoVacaciones = (salarioBase / 2.0) * 0.30;
+
     if (cumpleAnioContinuo) {
-      // 15 días de salario + 30% de prima
-      const pagoVacacion = (salarioBase / 2.0) * 1.30;
+      let boniVacaciones = 0.0;
+      
+      // La bonificación por antigüedad provisional aplica exclusivamente si el mes de ingreso es diciembre
+      if (esDiciembre) {
+        const diffTime = fCalculo.getTime() - fIngreso.getTime();
+        let aniosAntiguedad = 0;
+        if (diffTime > 0) {
+          const diasAntiguedad = Math.round(diffTime / (1000 * 60 * 60 * 24));
+          aniosAntiguedad = Math.round((diasAntiguedad / 365.25) * 100) / 100;
+        }
+
+        if (aniosAntiguedad >= 5.0) {
+          boniVacaciones = (salarioBase / 2.0) * 0.20;
+        } else if (aniosAntiguedad >= 2.0 && aniosAntiguedad < 5.0) {
+          boniVacaciones = (salarioBase / 2.0) * 0.15;
+        }
+      }
+
+      const pagoVacacion = montoVacaciones + boniVacaciones;
       return Math.round(pagoVacacion * 100) / 100;
     }
     
-    // Proporcional estándar
+    // Proporcional basado en la nueva base del 30%
     if (diasTrabajadosEnAnio > 0 && diasTrabajadosEnAnio < 365) {
       const diasProporcionales = (diasTrabajadosEnAnio / 365.0) * 15.0;
-      const pagoVacacionProporcional = diasProporcionales * (salarioBase / 30.0) * 1.30;
+      const pagoVacacionProporcional = diasProporcionales * (salarioBase / 30.0) * 0.30;
       return Math.round(pagoVacacionProporcional * 100) / 100;
     }
 
