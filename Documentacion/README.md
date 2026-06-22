@@ -20,6 +20,7 @@ Estandares de codificacion, diseno del sistema y especificaciones de componentes
 * [Solucion Error Generar Planilla](02-desarrollo-arquitectura/Solucion-Error-Generar-Planilla.md): Diagnostico y solucion al error HTTP 500 al generar planilla y boletas.
 * [Vacaciones Diciembre Provisional Detalles](02-desarrollo-arquitectura/v2-vacaciones-diciembre-provisional-detalles.md): Detalles tecnicos y de desarrollo sobre el calculo provisional de vacaciones.
 * [Programacion Aguinaldos Detalles](02-desarrollo-arquitectura/v2-programacion-aguinaldos-detalles.md): Detalles tecnicos sobre la calendarizacion y programacion de aguinaldos.
+* [Consolidacion Matriz Planilla](02-desarrollo-arquitectura/v2-consolidacion-matriz-planilla.md): Detalles tecnicos sobre la integracion de la matriz planilla consolidada en la vista de detalle.
 
 ### 3. Reglas de Negocio y Logica Fiscal/Laboral
 Documentos legales, matematicos y de formulacion que describen el calculo de planillas y prestaciones.

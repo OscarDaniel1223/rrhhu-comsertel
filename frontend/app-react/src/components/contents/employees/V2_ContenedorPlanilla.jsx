@@ -326,6 +326,168 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
     const [detalle, setDetalle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedBoleta, setSelectedBoleta] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [areaFilter, setAreaFilter] = useState('');
+
+    // Procesar datos de las boletas calculando columnas dinámicas
+    const getProcessedBoletas = () => {
+        if (!detalle || !detalle.boletas) return [];
+
+        return detalle.boletas.map((b) => {
+            const fechaIngresoDate = parseFechaLocal(b.fecha_ingreso);
+            const fechaFinPlanillaDate = parseFechaLocal(detalle.planilla.fecha_fin);
+
+            // Tiempo en la empresa (años)
+            let tiempoAnios = 0;
+            if (fechaIngresoDate && fechaFinPlanillaDate) {
+                const diffTime = fechaFinPlanillaDate.getTime() - fechaIngresoDate.getTime();
+                if (diffTime > 0) {
+                    tiempoAnios = Math.round((diffTime / (1000 * 60 * 60 * 24 * 365.25)) * 100) / 100;
+                }
+            }
+            // Salario Base Nominal
+            const sueldoSalario = parseFloat(b.salario_base) || 0.0;
+
+            // Desglose de Vacaciones
+            const vacacionesTotal = parseFloat(b.vacaciones) || 0.0;
+            let montoVacaciones = 0.0;
+            let boniVacaciones = 0.0;
+
+            if (vacacionesTotal > 0) {
+                const mesIngresoNum = fechaIngresoDate ? (fechaIngresoDate.getMonth() + 1) : 0;
+                
+                // Monto de vacaciones general: Salario base / 2 * 30%
+                montoVacaciones = (sueldoSalario / 2.0) * 0.30;
+
+                if (mesIngresoNum === 12) {
+                    if (tiempoAnios >= 5.0) {
+                        boniVacaciones = (sueldoSalario / 2.0) * 0.20;
+                    } else if (tiempoAnios >= 2.0 && tiempoAnios < 5.0) {
+                        boniVacaciones = (sueldoSalario / 2.0) * 0.15;
+                    } else {
+                        boniVacaciones = 0.0;
+                    }
+                } else {
+                    boniVacaciones = 0.0;
+                }
+
+                // Ajuste para consistencia con montos proporcionales
+                const checkSuma = parseFloat((montoVacaciones + boniVacaciones).toFixed(2));
+                if (Math.abs(vacacionesTotal - checkSuma) > 0.05 && boniVacaciones === 0) {
+                    montoVacaciones = vacacionesTotal;
+                }
+            }
+
+            // Monto Cotizable
+            const salarioDevengado = parseFloat(b.salario_devengado) || 0.0;
+            const aguinaldo = parseFloat(b.aguinaldo) || 0.0;
+            const quincenaVeinticinco = parseFloat(b.quincena_veinticinco) || 0.0;
+            const montoCotizable = Math.max(0, salarioDevengado - aguinaldo - quincenaVeinticinco);
+
+            // Monto a depositar planilla única: suma de todas las retenciones y aportaciones del empleado/patrono al ISSS, AFP e INCAF.
+            const isssPatronal = parseFloat(b.isss_patrono) || 0.0;
+            const afpPatronal = parseFloat(b.afp_patrono) || 0.0;
+            const incafPatronal = parseFloat(b.incaf_patrono) || 0.0;
+            const isssEmpleado = parseFloat(b.isss_empleado) || 0.0;
+            const afpEmpleado = parseFloat(b.afp_empleado) || 0.0;
+            const isrEmpleado = parseFloat(b.renta) || 0.0;
+
+            const montoPlanillaUnica = isssPatronal + afpPatronal + incafPatronal + isssEmpleado + afpEmpleado + isrEmpleado;
+
+            return {
+                id: b.id,
+                nombres: b.nombres,
+                apellidos: b.apellidos,
+                area: b.area || 'Back Office',
+                cargo: b.cargo,
+                fechaIngresoFormato: formatFechaLocal(b.fecha_ingreso),
+                fechaCorteFormato: formatFechaLocal(detalle.planilla.fecha_fin),
+                sueldoSalario: sueldoSalario,
+                viaticos: parseFloat(b.viaticos) || 0.00,
+                mesIngreso: fechaIngresoDate ? String(fechaIngresoDate.getMonth() + 1).padStart(2, '0') : '',
+                tiempoEmpresaAnios: Math.round(tiempoAnios),
+                horasExtrasDiurnas: parseFloat(b.horas_extras_diurnas) || 0.00,
+                horasExtrasNocturnas: parseFloat(b.horas_extras_nocturnas) || 0.00,
+                montoVacaciones: parseFloat(montoVacaciones.toFixed(2)),
+                boniVacaciones: parseFloat(boniVacaciones.toFixed(2)),
+                aguinaldo: aguinaldo,
+                quincenaVeinticinco: quincenaVeinticinco,
+                montoCotizable: parseFloat(montoCotizable.toFixed(2)),
+                isssPatronal: isssPatronal,
+                afpPatronal: afpPatronal,
+                incafPatronal: incafPatronal,
+                isssEmpleado: isssEmpleado,
+                afpEmpleado: afpEmpleado,
+                isrEmpleado: isrEmpleado,
+                montoDepositarEmpleado: parseFloat(b.salario_neto) || 0.0,
+                montoPlanillaUnica: parseFloat(montoPlanillaUnica.toFixed(2))
+            };
+        });
+    };
+
+    const processedBoletas = getProcessedBoletas();
+
+    // Filtrar boletas por búsqueda y área
+    const filteredBoletas = processedBoletas.filter((b) => {
+        const matchesSearch = `${b.nombres} ${b.apellidos}`.toLowerCase().includes(searchTerm.toLowerCase()) || b.cargo.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesArea = areaFilter === '' || b.area === areaFilter;
+        return matchesSearch && matchesArea;
+    });
+
+    // Obtener áreas únicas para filtro
+    const uniqueAreas = Array.from(new Set(processedBoletas.map(b => b.area)));
+
+    // Calcular Totales
+    const getTotals = () => {
+        const sums = {
+            sueldoSalario: 0,
+            viaticos: 0,
+            horasExtrasDiurnas: 0,
+            horasExtrasNocturnas: 0,
+            montoVacaciones: 0,
+            boniVacaciones: 0,
+            aguinaldo: 0,
+            quincenaVeinticinco: 0,
+            montoCotizable: 0,
+            isssPatronal: 0,
+            afpPatronal: 0,
+            incafPatronal: 0,
+            isssEmpleado: 0,
+            afpEmpleado: 0,
+            isrEmpleado: 0,
+            montoDepositarEmpleado: 0,
+            montoPlanillaUnica: 0
+        };
+
+        filteredBoletas.forEach((b) => {
+            sums.sueldoSalario += b.sueldoSalario;
+            sums.viaticos += b.viaticos;
+            sums.horasExtrasDiurnas += b.horasExtrasDiurnas;
+            sums.horasExtrasNocturnas += b.horasExtrasNocturnas;
+            sums.montoVacaciones += b.montoVacaciones;
+            sums.boniVacaciones += b.boniVacaciones;
+            sums.aguinaldo += b.aguinaldo;
+            sums.quincenaVeinticinco += b.quincenaVeinticinco;
+            sums.montoCotizable += b.montoCotizable;
+            sums.isssPatronal += b.isssPatronal;
+            sums.afpPatronal += b.afpPatronal;
+            sums.incafPatronal += b.incafPatronal;
+            sums.isssEmpleado += b.isssEmpleado;
+            sums.afpEmpleado += b.afpEmpleado;
+            sums.isrEmpleado += b.isrEmpleado;
+            sums.montoDepositarEmpleado += b.montoDepositarEmpleado;
+            sums.montoPlanillaUnica += b.montoPlanillaUnica;
+        });
+
+        // Redondear a 2 decimales
+        Object.keys(sums).forEach(key => {
+            sums[key] = parseFloat(sums[key].toFixed(2));
+        });
+
+        return sums;
+    };
+
+    const totals = getTotals();
 
     const fetchDetalle = async () => {
         setLoading(true);
@@ -782,57 +944,142 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 </div>
             </div>
 
-            {/* Listado de Boletas Individuales */}
+            {/* Filtros de Busqueda en Pantalla */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col md:flex-row gap-4 items-center print:hidden mt-6 mb-6">
+                <div className="relative flex-1 w-full">
+                    <i className="bi bi-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                    <input
+                        type="text"
+                        placeholder="Buscar empleado o cargo..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent text-slate-850 dark:text-white"
+                    />
+                </div>
+                <div className="w-full md:w-64">
+                    <select
+                        value={areaFilter}
+                        onChange={(e) => setAreaFilter(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent text-slate-850 dark:text-white"
+                    >
+                        <option value="">Todas las Areas</option>
+                        {uniqueAreas.map((area, idx) => (
+                            <option key={idx} value={area}>{area}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {/* Listado de Boletas Individuales - Matriz Planilla Consolidada */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <h3 className="font-bold text-md text-slate-800 dark:text-white m-0">Detalle de Empleados en Planilla</h3>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center print:hidden">
+                    <div>
+                        <h3 className="font-bold text-slate-800 dark:text-white text-md uppercase tracking-wider m-0">Detalle de Empleados en Planilla</h3>
+                        <p className="text-slate-400 text-xs mt-1">Matriz Planilla - {planilla.tipo_periodo}</p>
+                    </div>
+                    <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 px-3 py-1 rounded-lg">
+                        Registros: {filteredBoletas.length} de {processedBoletas.length}
+                    </span>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-[11px] text-left border-collapse print-table">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                <th className="py-4 px-6">Empleado</th>
-                                <th className="py-4 px-6">Cargo</th>
-                                <th className="py-4 px-6">Días Trabajados</th>
-                                <th className="py-4 px-6 text-right">Devengado</th>
-                                <th className="py-4 px-6 text-right">Deducciones</th>
-                                <th className="py-4 px-6 text-right">Neto a Recibir</th>
-                                <th className="py-4 px-6 text-center">Acciones</th>
+                            <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 font-bold uppercase tracking-wider text-slate-950 dark:text-white">
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50 sticky left-0 bg-slate-50 dark:bg-slate-900 z-10">N°</th>
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50 sticky left-8 bg-slate-50 dark:bg-slate-900 z-10">Colaborador</th>
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50 font-bold">Area</th>
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50 font-bold">Puesto</th>
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50">Ingreso</th>
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50">Corte Planilla</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Sueldo-Salario</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Viaticos</th>
+                                <th className="py-3 px-4 border-r border-slate-100 dark:border-slate-850/50 text-center">Mes Ingreso</th>
+                                <th className="py-3 px-4 text-center border-r border-slate-100 dark:border-slate-850/50">Tiempo (años)</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Horas Ext D.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Horas Ext N.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Monto Vac.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Boni Vac.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Aguinaldo</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">Quincena 25</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50 font-bold">Monto Cotizable</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">ISSS Patr.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">AFP Patr.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">ISSS Emp.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">AFP Emp.</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50">ISR (Renta)</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50 font-bold">Neto a Depositar</th>
+                                <th className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-850/50 font-bold">Planilla Unica</th>
+                                <th className="py-3 px-4 text-center font-bold">Boleta</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                            {boletas.map((b) => {
-                                const totalDeducciones = parseFloat(b.isss_empleado) + parseFloat(b.afp_empleado) + parseFloat(b.renta) + (parseFloat(b.descuento_ausencias) || 0.0);
-                                return (
-                                    <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                        <td className="py-4 px-6 font-semibold text-slate-800 dark:text-white">
-                                            {b.nombres} {b.apellidos}
-                                        </td>
-                                        <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{b.cargo}</td>
-                                        <td className="py-4 px-6 font-medium">{b.dias_trabajados} días</td>
-                                        <td className="py-4 px-6 text-right font-mono font-medium">{formatMoneda(b.salario_devengado)}</td>
-                                        <td className="py-4 px-6 text-right font-mono font-medium text-red-500">-{formatMoneda(totalDeducciones)}</td>
-                                        <td className="py-4 px-6 text-right font-mono font-bold text-emerald-600">{formatMoneda(b.salario_neto)}</td>
-                                        <td className="py-4 px-6 text-center">
-                                            <button
-                                                onClick={() => setSelectedBoleta(b)}
-                                                className="border border-blue-600 hover:bg-blue-50 text-blue-600 dark:border-white dark:text-white dark:hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
-                                            >
-                                                Ver Boleta
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium text-slate-800 dark:text-slate-200">
+                            {filteredBoletas.map((b, idx) => (
+                                <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-0 bg-white dark:bg-slate-900 font-bold z-10">{idx + 1}</td>
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 sticky left-8 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white z-10 whitespace-nowrap">
+                                        {b.nombres} {b.apellidos}
+                                    </td>
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.area}</td>
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.cargo}</td>
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.fechaIngresoFormato}</td>
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 whitespace-nowrap">{b.fechaCorteFormato}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.sueldoSalario)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.viaticos)}</td>
+                                    <td className="py-3 px-4 border-r border-slate-100 dark:border-slate-800/50 text-center">{b.mesIngreso}</td>
+                                    <td className="py-3 px-4 text-center border-r border-slate-100 dark:border-slate-800/50 font-mono">{b.tiempoEmpresaAnios}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.horasExtrasDiurnas)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.horasExtrasNocturnas)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.montoVacaciones)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.boniVacaciones)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.aguinaldo)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.quincenaVeinticinco)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold">{formatMoneda(b.montoCotizable)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.isssPatronal)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">{formatMoneda(b.afpPatronal)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">-{formatMoneda(b.isssEmpleado)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">-{formatMoneda(b.afpEmpleado)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono">-{formatMoneda(b.isrEmpleado)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold">{formatMoneda(b.montoDepositarEmpleado)}</td>
+                                    <td className="py-3 px-4 text-right border-r border-slate-100 dark:border-slate-800/50 font-mono font-bold">{formatMoneda(b.montoPlanillaUnica)}</td>
+                                    <td className="py-3 px-4 text-center">
+                                        <button
+                                            onClick={() => {
+                                                const originalBoleta = boletas.find(bo => bo.id === b.id);
+                                                setSelectedBoleta(originalBoleta);
+                                            }}
+                                            className="border border-blue-600 hover:bg-blue-50 text-blue-600 dark:border-white dark:text-white dark:hover:bg-white/10 px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                                        >
+                                            Ver Boleta
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
 
-                            {/* Fila de Totales de la Tabla (Tarea 13) */}
-                            <tr className="bg-slate-50/80 dark:bg-slate-800/80 font-bold border-t-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
-                                <td className="py-4 px-6" colSpan="3">Totales de la Planilla</td>
-                                <td className="py-4 px-6 text-right font-mono">{formatMoneda(resumen.total_salarios_devengados)}</td>
-                                <td className="py-4 px-6 text-right font-mono text-red-500">-{formatMoneda(resumen.total_isss_empleado + resumen.total_afp_empleado + resumen.total_renta)}</td>
-                                <td className="py-4 px-6 text-right font-mono text-emerald-600">{formatMoneda(resumen.total_salarios_netos)}</td>
-                                <td className="py-4 px-6"></td>
+                            {/* Fila de Totales Generales (TOTAL PLANILLA) */}
+                            <tr className="bg-slate-100/80 dark:bg-slate-800/60 font-bold text-slate-900 dark:text-white border-t-2 border-slate-300 dark:border-slate-700">
+                                <td className="py-3 px-4 sticky left-0 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-10"></td>
+                                <td className="py-3 px-4 sticky left-8 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-10 whitespace-nowrap font-bold">
+                                    TOTAL PLANILLA
+                                </td>
+                                <td className="py-3 px-4 border-r border-slate-200 dark:border-slate-700" colSpan="4"></td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.sueldoSalario)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.viaticos)}</td>
+                                <td className="py-3 px-4 border-r border-slate-200 dark:border-slate-700" colSpan="2"></td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.horasExtrasDiurnas)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.horasExtrasNocturnas)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.montoVacaciones)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.boniVacaciones)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.aguinaldo)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.quincenaVeinticinco)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.montoCotizable)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.isssPatronal)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">{formatMoneda(totals.afpPatronal)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">-{formatMoneda(totals.isssEmpleado)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">-{formatMoneda(totals.afpEmpleado)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold">-{formatMoneda(totals.isrEmpleado)}</td>
+                                <td className="py-3 px-4 text-right border-r border-slate-200 dark:border-slate-700 font-mono font-bold text-emerald-800 dark:text-emerald-400">{formatMoneda(totals.montoDepositarEmpleado)}</td>
+                                <td className="py-3 px-4 text-right font-mono font-bold text-red-800 dark:text-red-400">{formatMoneda(totals.montoPlanillaUnica)}</td>
                             </tr>
                         </tbody>
                     </table>

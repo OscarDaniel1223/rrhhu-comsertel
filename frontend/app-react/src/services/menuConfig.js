@@ -17,7 +17,6 @@ export const menuItems = [
     { id: "payroll", label: "Planilla", icon: "bi-cash-stack", rol: ["1", "3"], submenu: false, config: false },
     { id: "vacation_programming", label: "Programar Vacaciones", icon: "bi-calendar-check", rol: ["1", "3"], submenu: false, config: false },
     { id: "bono_programming", label: "Programar Aguinaldos", icon: "bi-gift", rol: ["1", "3"], submenu: false, config: false },
-    { id: "payroll_format", label: "Reporte Planilla", icon: "bi-file-earmark-spreadsheet", rol: ["1", "3"], submenu: false, config: false },
 
     // Configuraciones (se muestran bajo la seccion inferior)
     { id: "users", label: "Lista de usuarios", icon: "bi-people", rol: ["1"], config: true },
