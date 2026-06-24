@@ -79,3 +79,55 @@ El componente [V2_ContenedorPlanillaFormato.jsx](file:///home/bladimir/Documento
 * Leer los valores reales de `viaticos`, `horas_extras_diurnas` y `horas_extras_nocturnas` recuperados desde la base de datos para cada boleta.
 * Mostrar los valores correspondientes en sus respectivas columnas de la matriz consolidada.
 * Recalcular dinamicamente la sumatoria de estas columnas al pie de la tabla en los totales generales y permitir su correcta exportacion en el reporte de formato CSV.
+
+---
+
+## 4. Gestion de Novedades Persistentes por Empleado (Actualizacion Sprint 5)
+
+Para optimizar el flujo operativo, brindar un seguimiento de horas exacto y evitar que los usuarios tengan que digitar de forma manual los viaticos, beneficios y horas extras de los colaboradores al generar una planilla, se diseño e implemento un modulo de persistencia dedicada para novedades de nomina.
+
+### A. Estructura de Persistencia en Base de Datos (Seguimiento Diario):
+Se creo la tabla `novedades_empleados` para almacenar de forma diaria los registros de incidencias y viaticos por colaborador:
+```sql
+CREATE TABLE novedades_empleados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_empleado INT NOT NULL,
+    fecha DATE NOT NULL,
+    horas_extras_diurnas DECIMAL(5,2) DEFAULT 0.00,
+    horas_extras_nocturnas DECIMAL(5,2) DEFAULT 0.00,
+    viaticos DECIMAL(10,2) DEFAULT 0.00,
+    beneficios DECIMAL(10,2) DEFAULT 0.00,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_empleado) REFERENCES empleados(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_empleado_fecha (id_empleado, fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### B. Endpoints de Gestion en el Backend:
+* **`GET /api/novedades?fecha=YYYY-MM-DD`**: Obtiene las novedades registradas de un dia especifico para el listado interactivo.
+* **`GET /api/novedades?fecha_inicio=YYYY-MM-DD&fecha_fin=YYYY-MM-DD`**: Obtiene el consolidado (suma acumulada) de viaticos, beneficios y horas extras diurnas/nocturnas de cada empleado en el rango de fechas del periodo de pago de la planilla.
+* **`POST /api/novedades`**: Guarda o actualiza en bloque (upsert) la lista de novedades para la fecha seleccionada.
+
+### C. Interfaz de Gestion de Novedades y Horas Extras (`V2_ContenedorNovedades.jsx`):
+Se desarrollo una interfaz de usuario integrada que implementa pestañas (tabs) para alternar entre dos flujos de trabajo clave:
+
+1. **Pestaña: Registrar Novedades Diarias**:
+   * Permite seleccionar el dia y mes de gestion mediante un input nativo de tipo fecha.
+   * Maneja de forma segura la limpieza o borrado de dicho input, impidiendo peticiones a la API si la fecha esta vacia o incompleta para evitar caidas de sesion o errores de sistema.
+   * Visualiza la lista de colaboradores activos junto con sus respectivos salarios bases mensuales.
+   * Permite digitar de manera directa los viaticos, beneficios y la cantidad de horas extras diurnas/nocturnas correspondientes al dia.
+   * Muestra de forma reactiva y visual el costo en dolares de las horas extras ingresadas debajo de cada control, computado automaticamente bajo los criterios del Codigo de Trabajo (factor `120.0` para diurnas y `96.0` para nocturnas).
+   * Proporciona un boton para guardar la informacion del dia seleccionado con un solo clic.
+
+2. **Pestaña: Historial Acumulado Mensual**:
+   * Presenta un selector de mes (`type="month"`) para filtrar el periodo de interes.
+   * Consume de forma transparente el endpoint acumulador del backend configurando el rango de fechas completo del mes (desde el dia 1 hasta el ultimo dia calendario del mes seleccionado).
+   * Muestra una tabla detallada con los totales acumulados (sumas del mes) de horas extras diurnas y nocturnas (cantidad de horas y su costo en dolares), viaticos y beneficios de cada colaborador.
+   * Dispone de un buscador interactivo para filtrar la lista de personal por nombre, cargo o departamento organizativo.
+
+### D. Carga Automatica y Eliminacion de Inputs al Generar Planilla:
+* **Carga por Rango**: El componente principal de planillas (`V2_ContenedorPlanilla.jsx`) realiza de forma automatica una peticion al backend consumiendo el endpoint de rango acumulado entre `fecha_inicio` y `fecha_fin` del periodo seleccionado, mapeando los totales cargados para cada empleado en el estado.
+* **UI de Solo Lectura**: Se removieron por completo los inputs interactivos de la tabla de entrada de novedades en la UI de Generar Planilla para evitar duplicidad de flujos y modificaciones manuales erroneas. Los valores acumulados de viaticos, beneficios, horas extras diurnas y nocturnas se renderizan ahora como celdas de texto estatico puramente informativas.
+
+
+

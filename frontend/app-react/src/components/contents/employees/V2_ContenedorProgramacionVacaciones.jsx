@@ -138,10 +138,10 @@ const V2_ContenedorProgramacionVacaciones = () => {
     return (
         <div className="p-6 bg-slate-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-100 transition-colors">
             {/* Cabecera */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="flex flex-col items-center justify-center text-center mb-6">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Calendarizacion y Conciliacion de Vacaciones</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                         Establece y concilia de mutuo acuerdo el mes en que los empleados gozaran y cobraran su prestacion anual de vacaciones (Art. 177 - 189 del Codigo de Trabajo).
                     </p>
                 </div>

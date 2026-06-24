@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import Swal from 'sweetalert2';
 import { getPlanillas, getPlanillaById, generarPlanilla, cerrarPlanilla, deletePlanilla } from '../../../services/employees/v2_planillaService';
 import { getEmpleados } from '../../../services/employees/v2_empleadoService';
+import { getNovedadesPorRango } from '../../../services/employees/v2_novedadesService';
+
+
 
 /**
  * Procesa una fecha para evitar el desfase horario y los problemas de Invalid Date
@@ -1222,39 +1225,60 @@ const PlanillaGenerarTab = ({ onBack }) => {
     }, []);
 
     useEffect(() => {
-        if (empleados.length === 0) return;
+        if (empleados.length === 0 || !fechaInicio || !fechaFin) return;
 
         let mesInt = 0;
-        if (mesSeleccionado) {
-            const partes = mesSeleccionado.split('-');
-            if (partes.length === 2) {
+        if (fechaInicio) {
+            const partes = fechaInicio.split('-');
+            if (partes.length === 3) {
                 mesInt = parseInt(partes[1], 10);
-            } else {
-                mesInt = parseInt(mesSeleccionado, 10);
             }
         }
 
-        setNovedades(prev => {
-            const updated = { ...prev };
-            empleados.forEach(emp => {
-                const cumpleMes = emp.mes_vacaciones !== null && emp.mes_vacaciones === mesInt;
-                const autoVal = cumpleMes
-                    ? Math.round(((parseFloat(emp.salario_base) / 2.0) * 1.30) * 100) / 100
-                    : 0.00;
+        const fetchNovedadesRango = async () => {
+            try {
+                const response = await getNovedadesPorRango(fechaInicio, fechaFin);
+                const novBaseDatos = {};
+                if (response.status === 'success' && Array.isArray(response.data)) {
+                    response.data.forEach(item => {
+                        novBaseDatos[item.id_empleado] = {
+                            beneficios: item.beneficios > 0 ? String(item.beneficios) : '',
+                            viaticos: item.viaticos > 0 ? String(item.viaticos) : '',
+                            horas_extras_diurnas_qty: item.horas_extras_diurnas > 0 ? String(item.horas_extras_diurnas) : '',
+                            horas_extras_nocturnas_qty: item.horas_extras_nocturnas > 0 ? String(item.horas_extras_nocturnas) : ''
+                        };
+                    });
+                }
 
-                updated[emp.id] = {
-                    ...(updated[emp.id] || {
-                        beneficios: '',
-                        viaticos: '',
-                        horas_extras_diurnas_qty: '',
-                        horas_extras_nocturnas_qty: ''
-                    }),
-                    vacaciones: autoVal > 0 ? autoVal : ''
-                };
-            });
-            return updated;
-        });
-    }, [mesSeleccionado, empleados]);
+                setNovedades(prev => {
+                    const updated = { ...prev };
+                    empleados.forEach(emp => {
+                        const cumpleMes = emp.mes_vacaciones !== null && emp.mes_vacaciones === mesInt;
+                        const autoVal = cumpleMes
+                            ? Math.round(((parseFloat(emp.salario_base) / 2.0) * 1.30) * 100) / 100
+                            : 0.00;
+
+                        const dbData = novBaseDatos[emp.id] || {
+                            beneficios: '',
+                            viaticos: '',
+                            horas_extras_diurnas_qty: '',
+                            horas_extras_nocturnas_qty: ''
+                        };
+
+                        updated[emp.id] = {
+                            ...dbData,
+                            vacaciones: autoVal > 0 ? autoVal : ''
+                        };
+                    });
+                    return updated;
+                });
+            } catch (err) {
+                console.error('Error al cargar las novedades del periodo:', err);
+            }
+        };
+
+        fetchNovedadesRango();
+    }, [fechaInicio, fechaFin, empleados]);
 
     const handleNovedadChange = (empleadoId, campo, valor) => {
         setNovedades(prev => ({
@@ -1532,15 +1556,11 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                             <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{emp.cargo}</td>
                                             <td className="py-4 px-6 font-mono font-medium">{formatMoneda(emp.salario_base)}</td>
                                             <td className="py-4 px-6">
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    min="0"
-                                                    placeholder="0.00"
-                                                    value={novedades[emp.id]?.beneficios || ''}
-                                                    onChange={(e) => handleNovedadChange(emp.id, 'beneficios', e.target.value)}
-                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                                />
+                                                <span className="font-mono text-sm font-semibold">
+                                                    {novedades[emp.id]?.beneficios && parseFloat(novedades[emp.id].beneficios) > 0
+                                                        ? formatMoneda(novedades[emp.id].beneficios)
+                                                        : '$0.00'}
+                                                </span>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-3">
@@ -1565,56 +1585,38 @@ const PlanillaGenerarTab = ({ onBack }) => {
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6">
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    min="0"
-                                                    placeholder="0.00"
-                                                    value={novedades[emp.id]?.viaticos || ''}
-                                                    onChange={(e) => handleNovedadChange(emp.id, 'viaticos', e.target.value)}
-                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                                />
+                                                <span className="font-mono text-sm font-semibold">
+                                                    {novedades[emp.id]?.viaticos && parseFloat(novedades[emp.id].viaticos) > 0
+                                                        ? formatMoneda(novedades[emp.id].viaticos)
+                                                        : '$0.00'}
+                                                </span>
                                             </td>
                                         <td className="py-4 px-6">
-                                            <div className="flex flex-col gap-1.5">
-                                                <input
-                                                    type="number"
-                                                    step="0.5"
-                                                    min="0"
-                                                    placeholder="0.0"
-                                                    value={novedades[emp.id]?.horas_extras_diurnas_qty || ''}
-                                                    onChange={(e) => handleNovedadChange(emp.id, 'horas_extras_diurnas_qty', e.target.value)}
-                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                                />
-                                                <span className={`text-xs font-semibold ${novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
-                                                    ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
-                                                    : 'text-slate-400 dark:text-slate-500'
-                                                    }`}>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-semibold text-slate-800 dark:text-white">
                                                     {novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0
-                                                        ? formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_diurnas_qty) * (parseFloat(emp.salario_base) / 120.0)) * 100) / 100)
-                                                        : 'No aplica'}
+                                                        ? `${novedades[emp.id].horas_extras_diurnas_qty} hrs`
+                                                        : '0 hrs'}
                                                 </span>
+                                                {novedades[emp.id]?.horas_extras_diurnas_qty && parseFloat(novedades[emp.id].horas_extras_diurnas_qty) > 0 && (
+                                                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                                                        + {formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_diurnas_qty) * (parseFloat(emp.salario_base) / 120.0)) * 100) / 100)}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
-                                            <div className="flex flex-col gap-1.5">
-                                                <input
-                                                    type="number"
-                                                    step="0.5"
-                                                    min="0"
-                                                    placeholder="0.0"
-                                                    value={novedades[emp.id]?.horas_extras_nocturnas_qty || ''}
-                                                    onChange={(e) => handleNovedadChange(emp.id, 'horas_extras_nocturnas_qty', e.target.value)}
-                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm w-32 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                                                />
-                                                <span className={`text-xs font-semibold ${novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
-                                                    ? 'text-emerald-600 dark:text-emerald-400 font-mono font-bold'
-                                                    : 'text-slate-400 dark:text-slate-500'
-                                                    }`}>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-semibold text-slate-800 dark:text-white">
                                                     {novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0
-                                                        ? formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) * (parseFloat(emp.salario_base) / 96.0)) * 100) / 100)
-                                                        : 'No aplica'}
+                                                        ? `${novedades[emp.id].horas_extras_nocturnas_qty} hrs`
+                                                        : '0 hrs'}
                                                 </span>
+                                                {novedades[emp.id]?.horas_extras_nocturnas_qty && parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) > 0 && (
+                                                    <span className="text-[10px] text-purple-600 dark:text-purple-400 font-mono font-bold">
+                                                        + {formatMoneda(Math.round((parseFloat(novedades[emp.id].horas_extras_nocturnas_qty) * (parseFloat(emp.salario_base) / 96.0)) * 100) / 100)}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

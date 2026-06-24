@@ -109,6 +109,21 @@ CREATE TABLE boletas_pago (
    UNIQUE(id_planilla, id_empleado) -- Un empleado tiene solo una boleta por planilla
 );
 
+-- 7. Tabla de Novedades Mensuales de Empleados (Persistencia para horas extras y viaticos)
+CREATE TABLE novedades_empleados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_empleado INT NOT NULL,
+    mes INT NOT NULL,
+    anio INT NOT NULL,
+    horas_extras_diurnas DECIMAL(5,2) DEFAULT 0.00,
+    horas_extras_nocturnas DECIMAL(5,2) DEFAULT 0.00,
+    viaticos DECIMAL(10,2) DEFAULT 0.00,
+    beneficios DECIMAL(10,2) DEFAULT 0.00,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_empleado) REFERENCES empleados(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_empleado_periodo (id_empleado, mes, anio)
+);
+
 -- DATOS DE PRUEBA INICIALES
 INSERT INTO rh_departamentos (nombre) VALUES ('Ventas en Campo'), ('Back Office'), ('Operaciones Técnicas');
 INSERT INTO cargos (titulo, salario_base, id_departamento) VALUES ('Vendedor Toque en Frío', 365.00, 1), ('Técnico de Instalación', 450.00, 3), ('Jefe Operativo', 800.00, 2);

@@ -288,10 +288,10 @@ const V2_ContenedorProgramacionAguinaldo = () => {
     return (
         <div className="p-6 bg-slate-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-100 transition-colors">
             {/* Cabecera */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="flex flex-col items-center justify-center text-center mb-6">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Calendarizacion y Programacion de Aguinaldos</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                         Establece y define la fecha especifica de pago de aguinaldos para el personal. El sistema automatizara el calculo en la planilla del periodo que contenga dicha fecha (Art. 196 - 202 del Codigo de Trabajo).
                     </p>
                 </div>

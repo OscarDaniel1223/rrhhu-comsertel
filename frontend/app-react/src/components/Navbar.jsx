@@ -7,7 +7,7 @@ import { menuItems } from "../services/menuConfig";
 import img_logo from "../assets/comsertel-banner-dash.png";
 import { ThemeContext } from "../providers/ThemeContext";
 
-export default function Navbar({ activeItem, handleItemClick }) {
+export default function Navbar({ activeItem, handleItemClick, isSidebarOpen, onToggleSidebar }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -84,7 +84,9 @@ export default function Navbar({ activeItem, handleItemClick }) {
 
       {/* Sidebar / Offcanvas */}
       <div
-        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[1040] transform transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none lg:translate-x-0 print:hidden ${
+        className={`fixed top-0 left-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[1040] transform transition-transform duration-300 ease-in-out flex flex-col shadow-xl lg:shadow-none print:hidden ${
+          isSidebarOpen ? 'lg:translate-x-0' : 'lg:-translate-x-full'
+        } ${
           showMenu ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -101,12 +103,20 @@ export default function Navbar({ activeItem, handleItemClick }) {
 
         <div id="nav_contenedor" className="flex-1 flex flex-col overflow-y-auto justify-between">
           <div className="flex flex-col">
-            <div className="flex items-center justify-center border-b border-slate-100">
+            <div className="relative flex items-center justify-center border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
               <img
                 src={img_logo}
                 alt="Logo de empresa"
                 className="w-full h-[120px] object-cover"
               />
+              {/* Boton para ocultar barra lateral en escritorio */}
+              <button
+                onClick={() => onToggleSidebar(false)}
+                className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-[1045] items-center justify-center w-6 h-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full shadow hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 transition-all duration-200 cursor-pointer"
+                title="Ocultar menu"
+              >
+                <i className="bi bi-chevron-left text-xs"></i>
+              </button>
             </div>
 
             {/* Menu de navegacion principal */}

@@ -339,3 +339,63 @@ La gestión de estos endpoints se realiza a través de los siguientes módulos d
   "message": "Planilla y boletas de pago asociadas eliminadas exitosamente"
 }
 ```
+
+## Novedades de Empleados (Horas Extras, Viaticos y Beneficios)
+
+### 1. Obtener novedades diarias o consolidadas
+- **Endpoint:** `GET /api/novedades`
+- **Descripción:** Retorna la lista de novedades registradas para un dia especifico o las sumas acumuladas por empleado en un rango de fechas.
+- **Query Parameters (Caso A - Consulta Diaria):**
+  * `fecha` (string YYYY-MM-DD, requerido): Fecha exacta a consultar.
+- **Query Parameters (Caso B - Consolidado de Planilla):**
+  * `fecha_inicio` (string YYYY-MM-DD, requerido): Fecha de inicio del periodo.
+  * `fecha_fin` (string YYYY-MM-DD, requerido): Fecha de fin del periodo.
+- **Respuesta Exitosa (Caso A):** `200 OK`
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "id_empleado": 3,
+      "fecha": "2026-06-24",
+      "horas_extras_diurnas": "2.50",
+      "horas_extras_nocturnas": "1.00",
+      "viaticos": "10.00",
+      "beneficios": "50.00",
+      "nombres": "Juan",
+      "apellidos": "Perez",
+      "salario_base": "450.00"
+    }
+  ],
+  "message": "Novedades diarias obtenidas exitosamente"
+}
+```
+
+### 2. Guardar o actualizar novedades diarias
+- **Endpoint:** `POST /api/novedades`
+- **Descripción:** Registra o actualiza en bloque las novedades de multiples empleados para una fecha dada.
+- **Body:**
+```json
+{
+  "fecha": "2026-06-24",
+  "novedades": [
+    {
+      "id_empleado": 3,
+      "horas_extras_diurnas": 2.50,
+      "horas_extras_nocturnas": 1.00,
+      "viaticos": 10.00,
+      "beneficios": 50.00
+    }
+  ]
+}
+```
+- **Respuesta Exitosa:** `200 OK`
+```json
+{
+  "status": "success",
+  "message": "Novedades del dia guardadas exitosamente"
+}
+```
+
+
