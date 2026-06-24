@@ -155,12 +155,12 @@ const V2_ContenedorProgramacionVacaciones = () => {
                         Elegibilidad de Vacacion Ordinaria
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl">
-                        Todo trabajador tiene derecho a 15 dias calendario de vacaciones remuneradas al cumplir 1 ano continuo de servicios y haber trabajado al menos 200 dias. La prestacion equivale al salario ordinario de dicho lapso mas una prima del 30% de ley (factor 1.30 en total). El sistema automatizara el pago completo en la planilla del mes aqui calendarizado.
+                        Todo trabajador tiene derecho a 15 dias calendario de vacaciones remuneradas al cumplir 1 ano continuo de servicios y haber trabajado al menos 200 dias. La prestacion equivale al salario ordinario de dicho lapso mas una prima del 30% de ley (factor 0.30 en total). El sistema automatizara el pago completo en la planilla del mes aqui calendarizado.
                     </p>
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 font-mono text-xs rounded-xl p-3 border border-blue-100 dark:border-blue-900/30 whitespace-nowrap">
                     <span className="font-bold block">Formula de Ley:</span>
-                    Monto = (Salario Base / 2) x 1.30
+                    Monto = (Salario Base / 2) x 0.30
                 </div>
             </div>
 

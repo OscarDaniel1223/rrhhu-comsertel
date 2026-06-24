@@ -86,18 +86,113 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
         window.print();
     };
 
-    const netoLetras = "Monto en Dolares de los Estados Unidos de America"; // Placeholder para evitar librerías complejas
+    const salarioBaseMensual = parseFloat(boleta.salario_base) || 0;
+    const esQuincenal = planilla.tipo_periodo === 'QUINCENAL';
+    const salarioProporcional = esQuincenal ? (salarioBaseMensual / 2.0) : salarioBaseMensual;
+
+    const horasExtrasDiurnas = parseFloat(boleta.horas_extras_diurnas) || 0;
+    const horasExtrasNocturnas = parseFloat(boleta.horas_extras_nocturnas) || 0;
+    const viaticos = parseFloat(boleta.viaticos) || 0;
+    const beneficios = parseFloat(boleta.beneficios) || 0;
+    const vacaciones = parseFloat(boleta.vacaciones) || 0;
+    const aguinaldo = parseFloat(boleta.aguinaldo) || 0;
+    const quincenaVeinticinco = parseFloat(boleta.quincena_veinticinco) || 0;
+
+    // Total Devengado Bruto
+    const totalDevengadoBruto = salarioProporcional + horasExtrasDiurnas + horasExtrasNocturnas + viaticos + beneficios + vacaciones + aguinaldo + quincenaVeinticinco;
+
+    const descuentoAusencias = parseFloat(boleta.descuento_ausencias) || 0;
+    const afpEmpleado = parseFloat(boleta.afp_empleado) || 0;
+    const isssEmpleado = parseFloat(boleta.isss_empleado) || 0;
+    const rentaEmpleado = parseFloat(boleta.renta) || 0;
+
+    // Total Deducciones
+    const totalDeducciones = descuentoAusencias + afpEmpleado + isssEmpleado + rentaEmpleado;
+    const salarioNeto = parseFloat(boleta.salario_neto) || 0;
+
+    // Convertir número a palabras en español
+    const numeroALetras = (num) => {
+        const pesos = Math.floor(num);
+        const centavos = Math.round((num - pesos) * 100);
+        
+        const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE"];
+        const decenas = ["", "DIEZ", "VEINTE", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+        const especiales = {
+            11: "ONCE", 12: "DOCE", 13: "TRECE", 14: "CATORCE", 15: "QUINCE",
+            16: "DIECISEIS", 17: "DIECISIETE", 18: "DIECIOCHO", 19: "DIECINUEVE",
+            21: "VEINTIUN", 22: "VEINTIDOS", 23: "VEINTITRES", 24: "VEINTICUATRO",
+            25: "VEINTICINCO", 26: "VEINTISEIS", 27: "VEINTISIETE", 28: "VEINTIOCHO", 29: "VEINTINUEVE"
+        };
+        const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS", "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
+
+        const convertirGrupo = (n) => {
+            let output = "";
+            const c = Math.floor(n / 100);
+            const d = Math.floor((n % 100) / 10);
+            const u = n % 10;
+
+            if (c > 0) {
+                if (c === 1 && d === 0 && u === 0) output += "CIEN ";
+                else output += centenas[c] + " ";
+            }
+
+            const du = d * 10 + u;
+            if (du > 0) {
+                if (du < 10) output += unidades[du] + " ";
+                else if (du >= 11 && du <= 29 && especiales[du]) output += especiales[du] + " ";
+                else {
+                    output += decenas[d] + " ";
+                    if (u > 0) output += "Y " + unidades[u] + " ";
+                }
+            }
+            return output.trim();
+        };
+
+        if (num === 0) return "CERO DOLARES CON 00/100 USD";
+
+        let text = "";
+        const miles = Math.floor(pesos / 1000);
+        const resto = pesos % 1000;
+
+        if (miles > 0) {
+            if (miles === 1) text += "MIL ";
+            else text += convertirGrupo(miles) + " MIL ";
+        }
+
+        if (resto > 0) {
+            text += convertirGrupo(resto) + " ";
+        }
+
+        const centavosStr = centavos.toString().padStart(2, "0");
+        return `${text.trim()} DOLARES CON ${centavosStr}/100 USD`;
+    };
+
+    const netoLetras = numeroALetras(salarioNeto);
+
+    // Lógica dinámica de fechas y leyendas legales
+    const fInicioPlanilla = parseFechaLocal(planilla.fecha_inicio);
+    const anioPlanilla = fInicioPlanilla ? fInicioPlanilla.getFullYear() : new Date().getFullYear();
+
+    let subtituloFecha = `Período del ${formatFechaLocal(planilla.fecha_inicio)} al ${formatFechaLocal(planilla.fecha_fin)} (${planilla.tipo_periodo})`;
+    let leyendaExplicativa = null;
+
+    if (quincenaVeinticinco > 0) {
+        subtituloFecha = `Quincena Veinticinco - Fecha de Pago: 25/01/${anioPlanilla}`;
+        leyendaExplicativa = `Este rango de fecha corresponde al pago del beneficio extraordinario de Quincena Veinticinco (aplicado al 25 de Enero de ${anioPlanilla}), conforme a las políticas laborales y acuerdos contractuales de COMSERTEL, S.A. DE C.V.`;
+    } else if (aguinaldo > 0) {
+        const fechaAguinaldoFormateada = boleta.fecha_aguinaldo ? formatFechaLocal(boleta.fecha_aguinaldo) : `Diciembre de ${anioPlanilla}`;
+        subtituloFecha = `Aguinaldo de Ley - Fecha de Pago: ${fechaAguinaldoFormateada}`;
+        leyendaExplicativa = `Este rango de fecha corresponde al pago del Aguinaldo de Ley de conformidad con los artículos 196 al 202 del Código de Trabajo de El Salvador. El pago ha sido programado y asignado de manera individual en la fecha de goce comprendida del 20 de Octubre al 20 de Diciembre de ${anioPlanilla}.`;
+    }
 
     return createPortal(
         <div className="boleta-print-modal fixed inset-0 z-[1060] overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:inset-auto print:backdrop-blur-none">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
-                    /* Ocultar la aplicacion React entera y otros overlays */
                     #root, body > div:not(.boleta-print-modal) {
                         display: none !important;
                     }
-                    /* Limpiar body y html para la impresion */
                     html, body {
                         height: auto !important;
                         min-height: 0 !important;
@@ -106,7 +201,6 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                         background: white !important;
                         color: black !important;
                     }
-                    /* Ajustar contenedor del modal de impresion */
                     .boleta-print-modal {
                         display: block !important;
                         position: static !important;
@@ -134,7 +228,7 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
             `}} />
             <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none print:w-full print:h-full print:p-0">
 
-                {/* Cabecera del Modal (Oculta al imprimir) */}
+                {/* Cabecera del Modal */}
                 <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 print-hidden bg-slate-50 dark:bg-slate-900/50 print:hidden">
                     <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2 m-0 text-lg">
                         <i className="bi bi-file-earmark-pdf text-blue-600"></i>
@@ -157,151 +251,179 @@ const BoletaPagoModal = ({ boleta, planilla, onClose }) => {
                     </div>
                 </div>
 
-                {/* Contenido Imprimible de la Boleta */}
+                {/* Contenido de la Boleta */}
                 <div className="p-8 overflow-y-auto print:overflow-visible print:p-0 flex-1 bg-white text-black dark:bg-slate-900 dark:text-white print:bg-white print:text-black">
                     <div className="border-2 border-slate-300 p-6 rounded-xl space-y-6 print:border print:border-slate-400 print:p-4 print:space-y-4 print:rounded-none">
 
-                        {/* Membrete de la Empresa */}
+                        {/* Membrete */}
                         <div className="text-center pb-4 border-b border-slate-200 print:border-slate-300">
                             <h2 className="text-2xl font-bold uppercase tracking-wider text-slate-950 dark:text-white print:text-black">COMSERTEL, S.A. DE C.V.</h2>
                             <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-1">Servicios de Conectividad y Telecomunicaciones</p>
                             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">San Salvador, El Salvador</p>
                         </div>
 
-                        {/* Título de la Boleta */}
+                        {/* Título */}
                         <div className="text-center">
                             <h3 className="text-md font-bold uppercase text-slate-800 dark:text-slate-200 print:text-slate-800">Boleta de Pago Individual</h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                Período del {formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)} ({planilla.tipo_periodo})
+                                {subtituloFecha}
                             </p>
                         </div>
 
                         {/* Datos del Empleado */}
                         <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-2 text-sm bg-slate-50 dark:bg-slate-800/40 p-4 print:p-3 rounded-lg border border-slate-200 dark:border-slate-800 print:bg-white print:border-slate-300">
                             <div>
-                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Colaborador</span> {boleta.nombres} {boleta.apellidos}</p>
-                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Cargo</span> {boleta.cargo}</p>
-                                <p className="mb-0"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Salario Base Mensual</span> {formatMoneda(boleta.salario_base)}</p>
+                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Colaborador</span> <span className="font-semibold text-slate-900 dark:text-white print:text-black">{boleta.nombres} {boleta.apellidos}</span></p>
+                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Cargo / Área</span> <span className="font-semibold text-slate-900 dark:text-white print:text-black">{boleta.cargo} ({boleta.area || 'Back Office'})</span></p>
+                                <p className="mb-0"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Salario Base Mensual</span> <span className="font-semibold text-slate-900 dark:text-white print:text-black">{formatMoneda(boleta.salario_base)}</span></p>
                             </div>
                             <div>
-                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">DUI</span> {boleta.dui}</p>
-                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">NIT</span> {boleta.nit}</p>
-                                <p className="mb-0"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Días Cancelados</span> {boleta.dias_trabajados} días</p>
+                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">DUI / NIT</span> <span className="font-semibold text-slate-900 dark:text-white print:text-black">{boleta.dui || 'N/A'} / {boleta.nit || 'N/A'}</span></p>
+                                <p className="mb-2"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Días Cancelados</span> <span className="font-semibold text-slate-900 dark:text-white print:text-black">{boleta.dias_trabajados} días</span></p>
+                                <p className="mb-0"><span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-xs tracking-wider block">Fecha Ingreso</span> <span className="font-semibold text-slate-900 dark:text-white print:text-black">{formatFechaLocal(boleta.fecha_ingreso)}</span></p>
                             </div>
                         </div>
 
-                        {/* Detalle Financiero (Ingresos vs Deducciones) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 print:gap-4 items-start">
-
+                        {/* Detalle Financiero */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 print:gap-4 items-stretch">
                             {/* Ingresos / Devengados */}
-                            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
-                                    Ingresos y Devengados
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between print:border-slate-300">
+                                <div>
+                                    <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2.5 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 print:bg-slate-100 print:text-slate-700">
+                                        Ingresos y Devengados
+                                    </div>
+                                    <div className="p-4 print:p-3 space-y-2 print:space-y-1 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Salario Proporcional:</span>
+                                            <span className="font-semibold text-slate-900 dark:text-white print:text-black">{formatMoneda(salarioProporcional)}</span>
+                                        </div>
+                                        {horasExtrasDiurnas > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Horas Extras Diurnas:</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(horasExtrasDiurnas)}</span>
+                                            </div>
+                                        )}
+                                        {horasExtrasNocturnas > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Horas Extras Nocturnas:</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(horasExtrasNocturnas)}</span>
+                                            </div>
+                                        )}
+                                        {viaticos > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Viáticos (Exentos):</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(viaticos)}</span>
+                                            </div>
+                                        )}
+                                        {beneficios > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Beneficios / Bonos:</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(beneficios)}</span>
+                                            </div>
+                                        )}
+                                        {vacaciones > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Vacaciones Pagadas:</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(vacaciones)}</span>
+                                            </div>
+                                        )}
+                                        {aguinaldo > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Aguinaldo Exento:</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(aguinaldo)}</span>
+                                            </div>
+                                        )}
+                                        {quincenaVeinticinco > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Quincena Veinticinco:</span>
+                                                <span className="font-semibold text-emerald-600">+{formatMoneda(quincenaVeinticinco)}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="p-4 print:p-3 space-y-2 print:space-y-1 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">Salario Proporcional:</span>
-                                        <span className="font-semibold">{formatMoneda(planilla.tipo_periodo === 'QUINCENAL' ? boleta.salario_base / 2.0 : boleta.salario_base)}</span>
-                                    </div>
-                                    {Number(boleta.beneficios) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Beneficios / Bonos:</span>
-                                            <span className="font-semibold text-emerald-600">+{formatMoneda(boleta.beneficios)}</span>
-                                        </div>
-                                    )}
-                                    {Number(boleta.vacaciones) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Vacaciones Pagadas:</span>
-                                            <span className="font-semibold text-emerald-600">+{formatMoneda(boleta.vacaciones)}</span>
-                                        </div>
-                                    )}
-                                    {Number(boleta.aguinaldo) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Aguinaldo Exento:</span>
-                                            <span className="font-semibold text-emerald-600">+{formatMoneda(boleta.aguinaldo)}</span>
-                                        </div>
-                                    )}
-                                    {Number(boleta.quincena_veinticinco) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Quincena Veinticinco:</span>
-                                            <span className="font-semibold text-emerald-600">+{formatMoneda(boleta.quincena_veinticinco)}</span>
-                                        </div>
-                                    )}
-                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-2 flex justify-between font-bold text-slate-800 dark:text-white">
-                                        <span>Total Devengado:</span>
-                                        <span>{formatMoneda(boleta.salario_devengado)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Egresos / Deducciones */}
-                            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                                <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
-                                    Descuentos y Deducciones de Ley
-                                </div>
-                                <div className="p-4 print:p-3 space-y-2 print:space-y-1 text-sm">
-                                    {Number(boleta.descuento_ausencias) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Descuento Ausencias:</span>
-                                            <span className="font-semibold text-red-600">-{formatMoneda(boleta.descuento_ausencias)}</span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">Cotización Previsional AFP (7.25%):</span>
-                                        <span className="font-semibold text-red-600">-{formatMoneda(boleta.afp_empleado)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-600 dark:text-slate-400">Seguro Social ISSS (3.00%):</span>
-                                        <span className="font-semibold text-red-600">-{formatMoneda(boleta.isss_empleado)}</span>
-                                    </div>
-                                    {Number(boleta.renta_retencion) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Impuesto sobre la Renta (Retención):</span>
-                                            <span className="font-semibold text-red-600">-{formatMoneda(boleta.renta_retencion)}</span>
-                                        </div>
-                                    )}
-                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-2 flex justify-between font-bold text-slate-800 dark:text-white">
-                                        <span>Total Retenciones:</span>
-                                        <span>{formatMoneda(boleta.total_retenciones)}</span>
-                                    </div>
+                                <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 p-4 print:p-3 flex justify-between font-bold text-slate-800 dark:text-white print:bg-white print:border-slate-300">
+                                    <span>Total Devengado Bruto:</span>
+                                    <span className="font-mono">{formatMoneda(totalDevengadoBruto)}</span>
                                 </div>
                             </div>
 
+                            {/* Deducciones */}
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between print:border-slate-300">
+                                <div>
+                                    <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2.5 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 print:bg-slate-100 print:text-slate-700">
+                                        Descuentos y Deducciones
+                                    </div>
+                                    <div className="p-4 print:p-3 space-y-2 print:space-y-1 text-sm">
+                                        {descuentoAusencias > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Descuento Ausencias:</span>
+                                                <span className="font-semibold text-red-600">-{formatMoneda(descuentoAusencias)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Cotización Previsional AFP (7.25%):</span>
+                                            <span className="font-semibold text-red-600">-{formatMoneda(afpEmpleado)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Seguro Social ISSS (3.00%):</span>
+                                            <span className="font-semibold text-red-600">-{formatMoneda(isssEmpleado)}</span>
+                                        </div>
+                                        {rentaEmpleado > 0 && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-600 dark:text-slate-400 print:text-slate-600">Retención de Renta (ISR):</span>
+                                                <span className="font-semibold text-red-600">-{formatMoneda(rentaEmpleado)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 p-4 print:p-3 flex justify-between font-bold text-slate-800 dark:text-white print:bg-white print:border-slate-300">
+                                    <span>Total Retenciones:</span>
+                                    <span className="font-mono">{formatMoneda(totalDeducciones)}</span>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Neto a Recibir Líquido */}
-                        <div className="flex flex-col md:flex-row print:flex-row items-center print:justify-between p-5 print:p-3 bg-blue-50/70 border border-blue-100 rounded-lg text-blue-900 dark:bg-slate-800/80 dark:border-slate-700/80 dark:text-white print:bg-white print:border-slate-300">
+                        {/* Neto a Recibir */}
+                        <div className="flex flex-col md:flex-row print:flex-row items-center print:justify-between p-5 print:p-3 bg-blue-50/70 dark:bg-slate-850 border border-blue-100 dark:border-slate-800 rounded-lg text-blue-900 dark:text-white print:bg-white print:border-slate-300">
                             <div>
-                                <span className="font-bold text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 block">Líquido a Recibir</span>
-                                <span className="text-3xl font-mono font-bold tracking-tight">{formatMoneda(boleta.salario_neto)}</span>
+                                <span className="font-bold text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 block">Líquido a Recibir</span>
+                                <span className="text-3xl font-mono font-bold tracking-tight text-blue-700 dark:text-blue-400 print:text-black">{formatMoneda(salarioNeto)}</span>
                             </div>
-                            <div className="text-xs text-right mt-3 md:mt-0 font-medium text-slate-400 max-w-[280px]">
+                            <div className="text-xs text-center md:text-right mt-3 md:mt-0 font-medium text-slate-500 dark:text-slate-400 max-w-[400px]">
                                 {netoLetras}
                             </div>
                         </div>
 
-                        {/* Sección de Aportes Patronales (Costeo Ocultable en Impresión si se desea, pero la tarea pide mostrarla) */}
+                        {/* Leyenda Explicativa Legal */}
+                        {leyendaExplicativa && (
+                            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 p-3.5 rounded-lg text-[11px] text-slate-500 dark:text-slate-400 italic leading-normal">
+                                <i className="bi bi-info-circle-fill mr-1.5 text-blue-600 dark:text-blue-400 align-middle"></i>
+                                {leyendaExplicativa}
+                            </div>
+                        )}
+
+                        {/* Costeo Empresa */}
                         <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/40 print:bg-white print:border-slate-300">
-                            <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
+                            <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 print:bg-slate-100 print:text-slate-700">
                                 Información de Aportes Patronales (Costeo Empresa)
                             </div>
                             <div className="p-4 print:p-3 grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-4 print:gap-2 text-xs">
                                 <div>
                                     <span className="text-slate-400 dark:text-slate-500 block font-semibold uppercase tracking-wider">AFP Patrono (8.75%)</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">{formatMoneda(boleta.afp_patrono)}</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm print:text-black">{formatMoneda(boleta.afp_patrono)}</span>
                                 </div>
                                 <div>
                                     <span className="text-slate-400 dark:text-slate-500 block font-semibold uppercase tracking-wider">ISSS Patrono (7.50%)</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">{formatMoneda(boleta.isss_patrono)}</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm print:text-black">{formatMoneda(boleta.isss_patrono)}</span>
                                 </div>
                                 <div>
                                     <span className="text-slate-400 dark:text-slate-500 block font-semibold uppercase tracking-wider">INCAF Patrono (1.00%)</span>
-                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm">{formatMoneda(boleta.insaforp_patrono)}</span>
+                                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-sm print:text-black">{formatMoneda(boleta.insaforp_patrono)}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Firmas de Conformidad */}
+                        {/* Firmas */}
                         <div className="grid grid-cols-2 gap-12 print:gap-6 pt-16 print:pt-8 text-center text-xs">
                             <div className="border-t border-slate-400 pt-2 text-slate-500 font-medium dark:text-slate-400">
                                 <p className="font-bold text-slate-800 dark:text-white print:text-black">COMSERTEL, S.A. DE C.V.</p>
@@ -385,7 +507,8 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
             const salarioDevengado = parseFloat(b.salario_devengado) || 0.0;
             const aguinaldo = parseFloat(b.aguinaldo) || 0.0;
             const quincenaVeinticinco = parseFloat(b.quincena_veinticinco) || 0.0;
-            const montoCotizable = Math.max(0, salarioDevengado - aguinaldo - quincenaVeinticinco);
+            const viaticos = parseFloat(b.viaticos) || 0.0;
+            const montoCotizable = Math.max(0, salarioDevengado - aguinaldo - quincenaVeinticinco - viaticos);
 
             // Monto a depositar planilla única: suma de todas las retenciones y aportaciones del empleado/patrono al ISSS, AFP e INCAF.
             const isssPatronal = parseFloat(b.isss_patrono) || 0.0;
@@ -563,139 +686,261 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
 
         let boletasHTML = '';
         boletas.forEach((b) => {
-            const totalDeducciones = parseFloat(b.isss_empleado) + parseFloat(b.afp_empleado) + parseFloat(b.renta) + (parseFloat(b.descuento_ausencias) || 0.0);
-            const salarioProporcional = planilla.tipo_periodo === 'QUINCENAL' ? b.salario_base / 2.0 : b.salario_base;
+            const salarioBaseMensual = parseFloat(b.salario_base) || 0;
+            const esQuincenal = planilla.tipo_periodo === 'QUINCENAL';
+            const salarioProporcional = esQuincenal ? (salarioBaseMensual / 2.0) : salarioBaseMensual;
+
+            const horasExtrasDiurnas = parseFloat(b.horas_extras_diurnas) || 0;
+            const horasExtrasNocturnas = parseFloat(b.horas_extras_nocturnas) || 0;
+            const viaticos = parseFloat(b.viaticos) || 0;
+            const beneficios = parseFloat(b.beneficios) || 0;
+            const vacaciones = parseFloat(b.vacaciones) || 0;
+            const aguinaldo = parseFloat(b.aguinaldo) || 0;
+            const quincenaVeinticinco = parseFloat(b.quincena_veinticinco) || 0;
+
+            // Total Devengado Bruto
+            const totalDevengadoBruto = salarioProporcional + horasExtrasDiurnas + horasExtrasNocturnas + viaticos + beneficios + vacaciones + aguinaldo + quincenaVeinticinco;
+
+            const descuentoAusencias = parseFloat(b.descuento_ausencias) || 0;
+            const afpEmpleado = parseFloat(b.afp_empleado) || 0;
+            const isssEmpleado = parseFloat(b.isss_empleado) || 0;
+            const rentaEmpleado = parseFloat(b.renta) || 0;
+
+            // Total Deducciones
+            const totalDeducciones = descuentoAusencias + afpEmpleado + isssEmpleado + rentaEmpleado;
+            const salarioNeto = parseFloat(b.salario_neto) || 0;
+
+            // Convertir número a palabras
+            const numeroALetras = (num) => {
+                const pesos = Math.floor(num);
+                const centavos = Math.round((num - pesos) * 100);
+                
+                const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE"];
+                const decenas = ["", "DIEZ", "VEINTE", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+                const especiales = {
+                    11: "ONCE", 12: "DOCE", 13: "TRECE", 14: "CATORCE", 15: "QUINCE",
+                    16: "DIECISEIS", 17: "DIECISIETE", 18: "DIECIOCHO", 19: "DIECINUEVE",
+                    21: "VEINTIUN", 22: "VEINTIDOS", 23: "VEINTITRES", 24: "VEINTICUATRO",
+                    25: "VEINTICINCO", 26: "VEINTISEIS", 27: "VEINTISIETE", 28: "VEINTIOCHO", 29: "VEINTINUEVE"
+                };
+                const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS", "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
+
+                const convertirGrupo = (n) => {
+                    let output = "";
+                    const c = Math.floor(n / 100);
+                    const d = Math.floor((n % 100) / 10);
+                    const u = n % 10;
+
+                    if (c > 0) {
+                        if (c === 1 && d === 0 && u === 0) output += "CIEN ";
+                        else output += centenas[c] + " ";
+                    }
+
+                    const du = d * 10 + u;
+                    if (du > 0) {
+                        if (du < 10) output += unidades[du] + " ";
+                        else if (du >= 11 && du <= 29 && especiales[du]) output += especiales[du] + " ";
+                        else {
+                            output += decenas[d] + " ";
+                            if (u > 0) output += "Y " + unidades[u] + " ";
+                        }
+                    }
+                    return output.trim();
+                };
+
+                if (num === 0) return "CERO DOLARES CON 00/100 USD";
+
+                let text = "";
+                const miles = Math.floor(pesos / 1000);
+                const resto = pesos % 1000;
+
+                if (miles > 0) {
+                    if (miles === 1) text += "MIL ";
+                    else text += convertirGrupo(miles) + " MIL ";
+                }
+
+                if (resto > 0) {
+                    text += convertirGrupo(resto) + " ";
+                }
+
+                const centavosStr = centavos.toString().padStart(2, "0");
+                return `${text.trim()} DOLARES CON ${centavosStr}/100 USD`;
+            };
+
+            const netoLetras = numeroALetras(salarioNeto);
+
+            // Lógica dinámica de fechas y leyendas legales para la impresión
+            const fInicioPlanilla = parseFechaLocal(planilla.fecha_inicio);
+            const anioPlanilla = fInicioPlanilla ? fInicioPlanilla.getFullYear() : new Date().getFullYear();
+
+            let subtituloFecha = `Período del ${formatFechaLocal(planilla.fecha_inicio)} al ${formatFechaLocal(planilla.fecha_fin)} (${planilla.tipo_periodo})`;
+            let leyendaExplicativa = null;
+
+            if (quincenaVeinticinco > 0) {
+                subtituloFecha = `Quincena Veinticinco - Fecha de Pago: 25/01/${anioPlanilla}`;
+                leyendaExplicativa = `Este rango de fecha corresponde al pago del beneficio extraordinario de Quincena Veinticinco (aplicado al 25 de Enero de ${anioPlanilla}), conforme a las políticas laborales y acuerdos contractuales de COMSERTEL, S.A. DE C.V.`;
+            } else if (aguinaldo > 0) {
+                const fechaAguinaldoFormateada = b.fecha_aguinaldo ? formatFechaLocal(b.fecha_aguinaldo) : `Diciembre de ${anioPlanilla}`;
+                subtituloFecha = `Aguinaldo de Ley - Fecha de Pago: ${fechaAguinaldoFormateada}`;
+                leyendaExplicativa = `Este rango de fecha corresponde al pago del Aguinaldo de Ley de conformidad con los artículos 196 al 202 del Código de Trabajo de El Salvador. El pago ha sido programado y asignado de manera individual en la fecha de goce comprendida del 20 de Octubre al 20 de Diciembre de ${anioPlanilla}.`;
+            }
 
             boletasHTML += `
-                <div class="boleta-page" style="page-break-after: always; padding: 20px; font-family: sans-serif; color: black; background: white; max-width: 800px; margin: 0 auto;">
-                    <div style="border: 2px solid #ccc; padding: 20px; border-radius: 8px;">
-                        <div style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px;">
-                            <h2 style="margin: 0; font-size: 20px; text-transform: uppercase;">COMSERTEL, S.A. DE C.V.</h2>
-                            <p style="margin: 5px 0 0; font-size: 11px; text-transform: uppercase; color: #555; font-weight: bold;">Servicios de Conectividad y Telecomunicaciones</p>
-                            <p style="margin: 2px 0 0; font-size: 11px; color: #777;">San Salvador, El Salvador</p>
+                <div class="boleta-page">
+                    <div class="boleta-container">
+                        <!-- Membrete -->
+                        <div class="membrete">
+                            <h2>COMSERTEL, S.A. DE C.V.</h2>
+                            <p class="subtitulo">Servicios de Conectividad y Telecomunicaciones</p>
+                            <p class="ubicacion">San Salvador, El Salvador</p>
                         </div>
-                        
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <h3 style="margin: 0; font-size: 14px; text-transform: uppercase; color: #333;">Boleta de Pago Individual</h3>
-                            <p style="margin: 5px 0 0; font-size: 11px; color: #666;">
-                                Período del ${formatFechaLocal(planilla.fecha_inicio)} al ${formatFechaLocal(planilla.fecha_fin)} (${planilla.tipo_periodo})
-                            </p>
+
+                        <!-- Título -->
+                        <div class="titulo-boleta">
+                            <h3>Boleta de Pago Individual</h3>
+                            <p class="periodo">${subtituloFecha}</p>
                         </div>
-                        
-                        <table style="width: 100%; font-size: 12px; background: #f9f9f9; padding: 12px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 4px; width: 50%;"><strong>Colaborador:</strong> ${b.nombres} ${b.apellidos}</td>
-                                <td style="padding: 4px; width: 50%;"><strong>DUI:</strong> ${b.dui}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 4px;"><strong>Cargo:</strong> ${b.cargo}</td>
-                                <td style="padding: 4px;"><strong>NIT:</strong> ${b.nit}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 4px;"><strong>Salario Base Mensual:</strong> ${formatMoneda(b.salario_base)}</td>
-                                <td style="padding: 4px;"><strong>Días Cancelados:</strong> ${b.dias_trabajados} días</td>
-                            </tr>
-                        </table>
-                        
-                        <div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px; font-size: 12px;">
-                            <div style="width: 48%; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;">
-                                <div style="background: #eee; padding: 6px 12px; font-weight: bold; font-size: 11px; text-transform: uppercase;">Ingresos y Devengados</div>
-                                <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                                    <div>
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                            <span>Salario Proporcional:</span>
-                                            <span>${formatMoneda(salarioProporcional)}</span>
-                                        </div>
-                                        ${Number(b.beneficios) > 0 ? `
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                                <span>Beneficios / Bonos:</span>
-                                                <span style="color: green;">+${formatMoneda(b.beneficios)}</span>
-                                            </div>
-                                        ` : ''}
-                                        ${Number(b.vacaciones) > 0 ? `
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                                <span>Vacaciones Pagadas:</span>
-                                                <span style="color: green;">+${formatMoneda(b.vacaciones)}</span>
-                                            </div>
-                                        ` : ''}
-                                        ${Number(b.aguinaldo) > 0 ? `
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                                <span>Aguinaldo Exento:</span>
-                                                <span style="color: green;">+${formatMoneda(b.aguinaldo)}</span>
-                                            </div>
-                                        ` : ''}
-                                        ${Number(b.quincena_veinticinco) > 0 ? `
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                                <span>Quincena Veinticinco:</span>
-                                                <span style="color: green;">+${formatMoneda(b.quincena_veinticinco)}</span>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                    <div style="border-top: 1px solid #eee; padding-top: 6px; margin-top: 6px; display: flex; justify-content: space-between; font-weight: bold;">
-                                        <span>Total Devengado:</span>
-                                        <span>${formatMoneda(b.salario_devengado)}</span>
-                                    </div>
-                                </div>
+
+                        <!-- Datos Empleado -->
+                        <div class="datos-empleado">
+                            <div class="col">
+                                <p><span class="label">Colaborador</span> <span class="valor-destacado">${b.nombres} ${b.apellidos}</span></p>
+                                <p><span class="label">Cargo / Área</span> ${b.cargo} (${b.area || 'Back Office'})</p>
+                                <p><span class="label">Salario Base Mensual</span> ${formatMoneda(b.salario_base)}</p>
                             </div>
-                            
-                            <div style="width: 48%; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;">
-                                <div style="background: #eee; padding: 6px 12px; font-weight: bold; font-size: 11px; text-transform: uppercase;">Descuentos y Deducciones</div>
-                                <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                                    <div>
-                                        ${Number(b.descuento_ausencias) > 0 ? `
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                                <span>Descuento Ausencias:</span>
-                                                <span style="color: red;">-${formatMoneda(b.descuento_ausencias)}</span>
-                                            </div>
-                                        ` : ''}
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                            <span>AFP Empleado (7.25%):</span>
-                                            <span style="color: red;">-${formatMoneda(b.afp_empleado)}</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                            <span>ISSS Empleado (3.00%):</span>
-                                            <span style="color: red;">-${formatMoneda(b.isss_empleado)}</span>
-                                        </div>
-                                        ${Number(b.renta) > 0 ? `
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                                <span>Renta Retención:</span>
-                                                <span style="color: red;">-${formatMoneda(b.renta)}</span>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                    <div style="border-top: 1px solid #eee; padding-top: 6px; margin-top: 6px; display: flex; justify-content: space-between; font-weight: bold;">
-                                        <span>Total Retenciones:</span>
-                                        <span>-${formatMoneda(totalDeducciones)}</span>
-                                    </div>
-                                </div>
+                            <div class="col">
+                                <p><span class="label">DUI / NIT</span> ${b.dui || 'N/A'} / ${b.nit || 'N/A'}</p>
+                                <p><span class="label">Días Cancelados</span> ${b.dias_trabajados} días</p>
+                                <p><span class="label">Fecha Ingreso</span> ${formatFechaLocal(b.fecha_ingreso)}</p>
                             </div>
                         </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #ebf5ff; padding: 12px 15px; border-radius: 6px; border: 1px solid #cce5ff; margin-bottom: 20px; font-size: 14px;">
+
+                        <!-- Detalles Financieros -->
+                        <div class="detalles-financieros">
+                            <!-- Ingresos -->
+                            <div class="col-detalle">
+                                <div class="col-cabecera">Ingresos y Devengados</div>
+                                <div class="col-cuerpo">
+                                    <div class="fila-valor">
+                                        <span>Salario Proporcional:</span>
+                                        <span class="monto-valor">${formatMoneda(salarioProporcional)}</span>
+                                    </div>
+                                    ${horasExtrasDiurnas > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Horas Extras Diurnas:</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(horasExtrasDiurnas)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${horasExtrasNocturnas > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Horas Extras Nocturnas:</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(horasExtrasNocturnas)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${viaticos > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Viáticos (Exentos):</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(viaticos)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${beneficios > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Beneficios / Bonos:</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(beneficios)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${vacaciones > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Vacaciones Pagadas:</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(vacaciones)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${aguinaldo > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Aguinaldo Exento:</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(aguinaldo)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${quincenaVeinticinco > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Quincena Veinticinco:</span>
+                                            <span class="monto-valor positivo">+${formatMoneda(quincenaVeinticinco)}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="col-pie">
+                                    <span>Total Devengado Bruto:</span>
+                                    <span>${formatMoneda(totalDevengadoBruto)}</span>
+                                </div>
+                            </div>
+
+                            <!-- Egresos -->
+                            <div class="col-detalle">
+                                <div class="col-cabecera">Descuentos y Deducciones</div>
+                                <div class="col-cuerpo">
+                                    ${descuentoAusencias > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Descuento Ausencias:</span>
+                                            <span class="monto-valor negativo">-${formatMoneda(descuentoAusencias)}</span>
+                                        </div>
+                                    ` : ''}
+                                    <div class="fila-valor">
+                                        <span>Cotización Previsional AFP (7.25%):</span>
+                                        <span class="monto-valor negativo">-${formatMoneda(afpEmpleado)}</span>
+                                    </div>
+                                    <div class="fila-valor">
+                                        <span>Seguro Social ISSS (3.00%):</span>
+                                        <span class="monto-valor negativo">-${formatMoneda(isssEmpleado)}</span>
+                                    </div>
+                                    ${rentaEmpleado > 0 ? `
+                                        <div class="fila-valor">
+                                            <span>Retención de Renta (ISR):</span>
+                                            <span class="monto-valor negativo">-${formatMoneda(rentaEmpleado)}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="col-pie">
+                                    <span>Total Retenciones:</span>
+                                    <span>${formatMoneda(totalDeducciones)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Neto Recibir -->
+                        <div class="neto-recibir">
                             <div>
-                                <span style="font-size: 10px; color: #555; text-transform: uppercase; font-weight: bold; display: block;">Líquido a Recibir</span>
-                                <span style="font-size: 20px; font-weight: bold; font-family: monospace; color: #004085;">${formatMoneda(b.salario_neto)}</span>
+                                <span class="neto-titulo">Líquido a Recibir</span>
+                                <span class="neto-monto">${formatMoneda(salarioNeto)}</span>
                             </div>
-                            <div style="font-size: 10px; color: #777; font-weight: 500;">
-                                Monto en Dólares de los Estados Unidos de América
+                            <div class="neto-letras">${netoLetras}</div>
+                        </div>
+
+                        <!-- Leyenda Explicativa Legal -->
+                        ${leyendaExplicativa ? `
+                            <div style="background: #fafafa; border: 1px solid #eaeaea; padding: 10px; border-radius: 6px; font-size: 10px; color: #666; font-style: italic; margin-bottom: 16px; line-height: 1.4;">
+                                <strong>Nota legal:</strong> ${leyendaExplicativa}
+                            </div>
+                        ` : ''}
+
+                        <!-- Costeo Patronal -->
+                        <div class="costeo-patronal">
+                            <div class="costeo-cabecera">Información de Aportes Patronales (Costeo Empresa)</div>
+                            <div class="costeo-cuerpo">
+                                <div><strong>AFP Patrono (8.75%):</strong> ${formatMoneda(b.afp_patrono)}</div>
+                                <div><strong>ISSS Patrono (7.50%):</strong> ${formatMoneda(b.isss_patrono)}</div>
+                                <div><strong>INCAF Patrono (1.00%):</strong> ${formatMoneda(b.insaforp_patrono)}</div>
                             </div>
                         </div>
-                        
-                        <div style="border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background: #fafafa; padding: 10px; font-size: 10px;">
-                            <div style="font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 4px; text-transform: uppercase; color: #666;">Aportes Patronales (Costeo Empresa)</div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span><strong>AFP Patrono (8.75%):</strong> ${formatMoneda(b.afp_patrono)}</span>
-                                <span><strong>ISSS Patrono (7.50%):</strong> ${formatMoneda(b.isss_patrono)}</span>
-                                <span><strong>INCAF Patrono (1.00%):</strong> ${formatMoneda(b.insaforp_patrono)}</span>
+
+                        <!-- Firmas -->
+                        <div class="firmas">
+                            <div class="firma-col">
+                                <span class="nombre-firma">COMSERTEL, S.A. DE C.V.</span>
+                                <span>Firma y Sello del Patrono</span>
                             </div>
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; margin-top: 50px; text-align: center; font-size: 10px; gap: 40px;">
-                            <div style="flex: 1; border-top: 1px solid #000; padding-top: 5px;">
-                                <strong style="font-size: 11px;">COMSERTEL, S.A. DE C.V.</strong><br>Firma y Sello del Patrono
-                            </div>
-                            <div style="flex: 1; border-top: 1px solid #000; padding-top: 5px;">
-                                <strong style="font-size: 11px;">${b.nombres} ${b.apellidos}</strong><br>Firma de Conformidad Empleado
+                            <div class="firma-col">
+                                <span class="nombre-firma">${b.nombres} ${b.apellidos}</span>
+                                <span>Firma de Conformidad Empleado</span>
                             </div>
                         </div>
                     </div>
@@ -708,11 +953,239 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 <head>
                     <title>Boletas de Pago - Periodo ${planilla.id}</title>
                     <style>
-                        body { margin: 0; padding: 0; background: white; }
+                        body { 
+                            margin: 0; 
+                            padding: 0; 
+                            background: white; 
+                            font-family: Arial, sans-serif;
+                            color: #333;
+                        }
                         @media print {
                             body { background: white; }
-                            .boleta-page { page-break-after: always; }
+                            .boleta-page { 
+                                page-break-after: always; 
+                                padding: 10mm 0;
+                            }
                             .boleta-page:last-child { page-break-after: avoid; }
+                        }
+                        .boleta-page {
+                            padding: 20px;
+                            box-sizing: border-box;
+                        }
+                        .boleta-container {
+                            border: 2px solid #ddd;
+                            padding: 24px;
+                            border-radius: 12px;
+                            max-width: 800px;
+                            margin: 0 auto;
+                            box-sizing: border-box;
+                        }
+                        .membrete {
+                            text-align: center;
+                            border-bottom: 1px solid #eee;
+                            padding-bottom: 12px;
+                            margin-bottom: 16px;
+                        }
+                        .membrete h2 {
+                            margin: 0;
+                            font-size: 22px;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
+                            color: #111;
+                        }
+                        .membrete .subtitulo {
+                            margin: 4px 0 0;
+                            font-size: 11px;
+                            text-transform: uppercase;
+                            color: #666;
+                            font-weight: bold;
+                            letter-spacing: 0.5px;
+                        }
+                        .membrete .ubicacion {
+                            margin: 2px 0 0;
+                            font-size: 10px;
+                            color: #888;
+                        }
+                        .titulo-boleta {
+                            text-align: center;
+                            margin-bottom: 16px;
+                        }
+                        .titulo-boleta h3 {
+                            margin: 0;
+                            font-size: 15px;
+                            text-transform: uppercase;
+                            color: #333;
+                            font-weight: bold;
+                        }
+                        .titulo-boleta .periodo {
+                            margin: 4px 0 0;
+                            font-size: 11px;
+                            color: #666;
+                        }
+                        .datos-empleado {
+                            display: flex;
+                            justify-content: space-between;
+                            background: #f9f9f9;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            border: 1px solid #eaeaea;
+                            margin-bottom: 16px;
+                            font-size: 12px;
+                            line-height: 1.6;
+                        }
+                        .datos-empleado .col {
+                            width: 48%;
+                        }
+                        .datos-empleado p {
+                            margin: 0 0 6px;
+                        }
+                        .datos-empleado p:last-child {
+                            margin-bottom: 0;
+                        }
+                        .datos-empleado .label {
+                            font-weight: bold;
+                            color: #666;
+                            text-transform: uppercase;
+                            font-size: 9px;
+                            letter-spacing: 0.5px;
+                            display: block;
+                        }
+                        .datos-empleado .valor-destacado {
+                            font-weight: bold;
+                            color: #111;
+                        }
+                        .detalles-financieros {
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 16px;
+                            margin-bottom: 16px;
+                            font-size: 12px;
+                        }
+                        .col-detalle {
+                            width: 49%;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                        }
+                        .col-cabecera {
+                            background: #f4f4f4;
+                            padding: 8px 12px;
+                            font-weight: bold;
+                            font-size: 10px;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                            border-bottom: 1px solid #ddd;
+                            color: #444;
+                        }
+                        .col-cuerpo {
+                            padding: 12px;
+                            flex-grow: 1;
+                        }
+                        .fila-valor {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 6px;
+                            color: #444;
+                        }
+                        .fila-valor:last-child {
+                            margin-bottom: 0;
+                        }
+                        .monto-valor {
+                            font-weight: 600;
+                        }
+                        .positivo {
+                            color: #2e7d32;
+                        }
+                        .negativo {
+                            color: #c62828;
+                        }
+                        .col-pie {
+                            border-top: 1px solid #eee;
+                            background: #fafafa;
+                            padding: 10px 12px;
+                            display: flex;
+                            justify-content: space-between;
+                            font-weight: bold;
+                            color: #222;
+                        }
+                        .neto-recibir {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            background: #eef7ff;
+                            padding: 16px;
+                            border-radius: 8px;
+                            border: 1px solid #b3d7ff;
+                            margin-bottom: 16px;
+                        }
+                        .neto-titulo {
+                            font-size: 10px;
+                            color: #555;
+                            text-transform: uppercase;
+                            font-weight: bold;
+                            display: block;
+                            letter-spacing: 0.5px;
+                            margin-bottom: 2px;
+                        }
+                        .neto-monto {
+                            font-size: 24px;
+                            font-weight: bold;
+                            font-family: monospace;
+                            color: #004085;
+                        }
+                        .neto-letras {
+                            font-size: 11px;
+                            color: #555;
+                            font-weight: bold;
+                            max-width: 50%;
+                            text-align: right;
+                            text-transform: uppercase;
+                        }
+                        .costeo-patronal {
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            background: #fdfdfd;
+                            font-size: 10px;
+                            margin-bottom: 16px;
+                        }
+                        .costeo-cabecera {
+                            background: #f4f4f4;
+                            padding: 6px 12px;
+                            font-weight: bold;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                            color: #666;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        .costeo-cuerpo {
+                            padding: 10px 12px;
+                            display: flex;
+                            justify-content: space-between;
+                        }
+                        .firmas {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-top: 40px;
+                            text-align: center;
+                            font-size: 10px;
+                            gap: 40px;
+                        }
+                        .firma-col {
+                            flex: 1;
+                            border-top: 1px solid #888;
+                            padding-top: 6px;
+                            color: #666;
+                        }
+                        .nombre-firma {
+                            font-size: 11px;
+                            font-weight: bold;
+                            color: #222;
+                            display: block;
+                            margin-bottom: 2px;
                         }
                     </style>
                 </head>
@@ -865,8 +1338,23 @@ const PlanillaDetalleView = ({ planillaId, onBack }) => {
                 {/* Cabecera: Resumen de Planilla */}
                 <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">Resumen de Planilla #{planilla.id}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-500 dark:text-slate-400 pt-3">
-                        <p><span className="font-semibold text-slate-700 dark:text-white">Rango de fechas:</span> {formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-slate-500 dark:text-slate-400 pt-3 items-start">
+                        <div className="flex flex-col space-y-1">
+                            <span className="font-semibold text-slate-700 dark:text-white">Rango de fechas general:</span>
+                            <span>{formatFechaLocal(planilla.fecha_inicio)} al {formatFechaLocal(planilla.fecha_fin)}</span>
+                            {resumen.total_quincena_veinticinco > 0 && (
+                                <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold italic mt-1 block leading-normal">
+                                    <i className="bi bi-info-circle-fill mr-1"></i>
+                                    Aplicado para Quincena Veinticinco: Pago al 25/01/{parseFechaLocal(planilla.fecha_inicio) ? parseFechaLocal(planilla.fecha_inicio).getFullYear() : new Date().getFullYear()} según pacto colectivo.
+                                </span>
+                            )}
+                            {resumen.total_aguinaldo > 0 && (
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold italic mt-1 block leading-normal">
+                                    <i className="bi bi-info-circle-fill mr-1"></i>
+                                    Aplicado para Aguinaldo de Ley: Fecha de goce programada individual del 20 de Octubre al 20 de Diciembre (Art. 200 C.T.)
+                                </span>
+                            )}
+                        </div>
                         <p><span className="font-semibold text-slate-700 dark:text-white">Tipo de planilla:</span> {planilla.tipo_periodo}</p>
                         <p><span className="font-semibold text-slate-700 dark:text-white">Fecha Generación:</span> {new Date(planilla.creado_en).toLocaleString()}</p>
                     </div>

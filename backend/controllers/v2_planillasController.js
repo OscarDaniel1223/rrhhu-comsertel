@@ -47,7 +47,7 @@ const getPlanillaById = async (req, res) => {
 
         // 2. Obtener boletas de pago asociadas con datos del empleado
         const boletasQuery = `
-            SELECT b.*, b.incaf_patrono AS insaforp_patrono, e.nombres, e.apellidos, e.dui, e.nit, e.fecha_ingreso, c.titulo AS cargo, c.salario_base, d.nombre AS area
+            SELECT b.*, b.incaf_patrono AS insaforp_patrono, e.nombres, e.apellidos, e.dui, e.nit, e.fecha_ingreso, e.fecha_aguinaldo, c.titulo AS cargo, c.salario_base, d.nombre AS area
             FROM boletas_pago b
             JOIN empleados e ON b.id_empleado = e.id
             JOIN cargos c ON e.id_cargo = c.id
