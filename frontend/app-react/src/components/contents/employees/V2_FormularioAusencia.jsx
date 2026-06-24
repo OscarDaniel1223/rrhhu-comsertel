@@ -115,17 +115,20 @@ const V2_FormularioAusencia = ({ selectedIncidencia, onClearEdit }) => {
             ? 'La ausencia o incapacidad ha sido modificada correctamente.'
             : 'La ausencia o incapacidad ha sido registrada correctamente.'
         });
+
+        // Limpiar de forma explicita el formulario local
+        setFormData({
+          id_empleado: '',
+          tipo: 'AUSENCIA_INJUSTIFICADA',
+          fecha_inicio: '',
+          fecha_fin: '',
+          motivo: '',
+          estado: 'PENDIENTE'
+        });
+
+        // Limpiar la seleccion en el contenedor padre
         if (onClearEdit) {
           onClearEdit();
-        } else {
-          setFormData({
-            id_empleado: '',
-            tipo: 'AUSENCIA_INJUSTIFICADA',
-            fecha_inicio: '',
-            fecha_fin: '',
-            motivo: '',
-            estado: 'PENDIENTE'
-          });
         }
       }
     } catch (error) {

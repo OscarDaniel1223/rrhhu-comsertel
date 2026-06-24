@@ -47,7 +47,35 @@ const V2_TablaAusencia = ({ onEdit }) => {
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroEmpleado, setFiltroEmpleado] = useState('Todos');
+  const [filtroAnio, setFiltroAnio] = useState('Todos');
+  const [filtroMes, setFiltroMes] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
+
+  const meses = [
+    { val: '01', label: 'Enero' },
+    { val: '02', label: 'Febrero' },
+    { val: '03', label: 'Marzo' },
+    { val: '04', label: 'Abril' },
+    { val: '05', label: 'Mayo' },
+    { val: '06', label: 'Junio' },
+    { val: '07', label: 'Julio' },
+    { val: '08', label: 'Agosto' },
+    { val: '09', label: 'Septiembre' },
+    { val: '10', label: 'Octubre' },
+    { val: '11', label: 'Noviembre' },
+    { val: '12', label: 'Diciembre' }
+  ];
+
+  const aniosDisponibles = React.useMemo(() => {
+    const years = new Set(ausencias.map(ai => {
+      if (!ai.fecha_inicio) return new Date().getFullYear();
+      return new Date(ai.fecha_inicio).getFullYear();
+    }));
+    const currentYear = new Date().getFullYear();
+    years.add(currentYear);
+    years.add(currentYear - 1);
+    return Array.from(years).sort((a, b) => b - a);
+  }, [ausencias]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -126,6 +154,9 @@ const V2_TablaAusencia = ({ onEdit }) => {
   const ausenciasFiltradas = ausencias.filter((ai) => {
     const cumpleFiltroEmpleado = filtroEmpleado === 'Todos' || String(ai.id_empleado) === filtroEmpleado;
 
+    const cumpleAnio = filtroAnio === 'Todos' || (ai.fecha_inicio && ai.fecha_inicio.substring(0, 4) === filtroAnio);
+    const cumpleMes = filtroMes === 'Todos' || (ai.fecha_inicio && ai.fecha_inicio.substring(5, 7) === filtroMes);
+
     const nombreCompleto = `${ai.empleado_nombres} ${ai.empleado_apellidos}`.toLowerCase();
     const cumpleBusqueda =
       nombreCompleto.includes(busqueda.toLowerCase()) ||
@@ -133,7 +164,7 @@ const V2_TablaAusencia = ({ onEdit }) => {
       (ai.motivo && ai.motivo.toLowerCase().includes(busqueda.toLowerCase())) ||
       formatTipoText(ai.tipo).toLowerCase().includes(busqueda.toLowerCase());
 
-    return cumpleFiltroEmpleado && cumpleBusqueda;
+    return cumpleFiltroEmpleado && cumpleAnio && cumpleMes && cumpleBusqueda;
   });
 
   return (
@@ -141,6 +172,7 @@ const V2_TablaAusencia = ({ onEdit }) => {
       {/* Controles de Filtro y Busqueda */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 justify-between items-center">
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          {/* Filtrar por Colaborador */}
           <div className="flex flex-col gap-1 w-full sm:w-64">
             <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Filtrar por Colaborador</label>
             <select
@@ -152,6 +184,40 @@ const V2_TablaAusencia = ({ onEdit }) => {
               {empleados.map((emp) => (
                 <option key={emp.id} value={String(emp.id)}>
                   {emp.nombres} {emp.apellidos} ({emp.dui})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filtrar por Año */}
+          <div className="flex flex-col gap-1 w-full sm:w-32">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Año</label>
+            <select
+              value={filtroAnio}
+              onChange={(e) => setFiltroAnio(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-sm bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 dark:text-slate-100"
+            >
+              <option value="Todos">Todos</option>
+              {aniosDisponibles.map((anio) => (
+                <option key={anio} value={String(anio)}>
+                  {anio}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filtrar por Mes */}
+          <div className="flex flex-col gap-1 w-full sm:w-44">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Mes</label>
+            <select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-sm bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 dark:text-slate-100"
+            >
+              <option value="Todos">Todos los meses</option>
+              {meses.map((m) => (
+                <option key={m.val} value={m.val}>
+                  {m.label}
                 </option>
               ))}
             </select>

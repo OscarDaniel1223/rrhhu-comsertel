@@ -79,3 +79,20 @@ Se requirio actualizar el salario minimo de ley registrado en el sistema, elevan
 * [v2_cargosController.js](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/backend/controllers/v2_cargosController.js): Lineas 71 y 111 (validaciones de salario).
 * [V2_FormularioCargo.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/contents/employees/V2_FormularioCargo.jsx): Validacion del cliente e interfaz visual.
 
+---
+
+### 24 de Junio de 2026 - Mejoras en Control de Ausencias e Incapacidades
+
+#### Descripcion del Problema
+1. En la tabla de "Historial de Ausencias" se requeria la posibilidad de filtrar los registros por Ano y Mes de forma especifica para facilitar las búsquedas.
+2. Al modificar una ausencia desde la tabla, tras guardar con éxito el formulario no se limpiaba y quedaba relleno con la informacion anterior, impidiendo registrar una nueva incidencia de forma inmediata.
+
+#### Solucion Implementada
+* **Filtros por Ano y Mes:** Se agregaron estados para los filtros de Ano y Mes en el componente `V2_TablaAusencia.jsx`. La lista de meses se definió de forma estática en espanol y la lista de anos disponibles se calcula de forma dinámica y única en base a las ausencias registradas, garantizando que siempre se muestren opciones útiles. El filtrado de datos se realiza a nivel del cliente de forma exacta comparando la fecha de inicio de la incidencia.
+* **Limpieza de Formulario:** En `V2_FormularioAusencia.jsx`, se implemento la limpieza explícita del estado local del formulario (`setFormData` con valores por defecto) en el bloque de éxito del envío, y posteriormente se llama a `onClearEdit()` para notificar al contenedor padre y limpiar la seleccion actual.
+
+#### Archivos Modificados
+* [V2_TablaAusencia.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/tables/employees/V2_TablaAusencia.jsx): Logica y selectores de filtros de Ano y Mes en el listado.
+* [V2_FormularioAusencia.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/contents/employees/V2_FormularioAusencia.jsx): Reseteo de campos del formulario tras guardado exitoso.
+
+
