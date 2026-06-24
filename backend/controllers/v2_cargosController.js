@@ -68,11 +68,11 @@ exports.createCargo = async (req, res) => {
             });
         }
 
-        if (Number(salario_base) < 365.00) {
+        if (Number(salario_base) < 408.80) {
             return res.status(400).json({
                 status: 'error',
                 error: 'MINIMUM_WAGE_VIOLATION',
-                message: 'El salario base no puede ser menor al salario mínimo legal de $365.00 USD'
+                message: 'El salario base no puede ser menor al salario mínimo legal de $408.80 USD'
             });
         }
         
@@ -108,11 +108,11 @@ exports.updateCargo = async (req, res) => {
             });
         }
 
-        if (Number(salario_base) < 365.00) {
+        if (Number(salario_base) < 408.80) {
             return res.status(400).json({
                 status: 'error',
                 error: 'MINIMUM_WAGE_VIOLATION',
-                message: 'El salario base no puede ser menor al salario mínimo legal de $365.00 USD'
+                message: 'El salario base no puede ser menor al salario mínimo legal de $408.80 USD'
             });
         }
         

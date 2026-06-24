@@ -65,8 +65,8 @@ export default function V2_FormularioCargo({ selectedCargo, onClearEdit }) {
       return;
     }
 
-    if (Number(formData.salario_base) < 365.00) {
-      showError('El salario base no puede ser menor al salario mínimo legal de $365.00 USD.');
+    if (Number(formData.salario_base) < 408.80) {
+      showError('El salario base no puede ser menor al salario mínimo legal de $408.80 USD.');
       return;
     }
 
@@ -139,8 +139,8 @@ export default function V2_FormularioCargo({ selectedCargo, onClearEdit }) {
             id="salario_base"
             name="salario_base"
             step="0.01"
-            min="365.00"
-            placeholder="Minimo $365.00"
+            min="408.80"
+            placeholder="Minimo $408.80"
             value={formData.salario_base}
             onChange={handleChange}
             required

@@ -63,3 +63,19 @@ La formula en el frontend ahora es equivalente a la del backend:
 * Restar la Bonificacion de Aguinaldo contractual (no presente en sistema): -$256.67 USD
 * Restar el Impuesto sobre la Renta obligatorio (no calculado en el Excel): -$41.20 USD
 * **Resultado Neto Final:** **$1,212.44 USD** (Monto exacto calculado por el Sistema).
+
+---
+
+### 24 de Junio de 2026 - Actualizacion del Salario Minimo Legal a $408.80 USD
+
+#### Descripcion del Problema
+Se requirio actualizar el salario minimo de ley registrado en el sistema, elevando la validacion del salario base mensual de $365.00 USD a **$408.80 USD** para reflejar la normativa legal vigente del sector comercio y servicios de El Salvador.
+
+#### Solucion Implementada
+* **Backend:** Se modifico `v2_cargosController.js` para que al crear (`createCargo`) o editar (`updateCargo`) un cargo organizacional, el sistema valide que el `salario_base` ingresado sea mayor o igual a **408.80**. En caso contrario, se retorna un codigo de error `MINIMUM_WAGE_VIOLATION`.
+* **Frontend:** Se actualizo `V2_FormularioCargo.jsx` para rechazar envios de formulario de cargos con salarios menores a **408.80** y se configuro el placeholder y el atributo `min` del campo input de salario base a **408.80**.
+
+#### Archivos Modificados
+* [v2_cargosController.js](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/backend/controllers/v2_cargosController.js): Lineas 71 y 111 (validaciones de salario).
+* [V2_FormularioCargo.jsx](file:///home/bladimir/Documentos/02%20PROYECTOS/Proyecto%20RHU/rrhhu-comsertel/frontend/app-react/src/components/contents/employees/V2_FormularioCargo.jsx): Validacion del cliente e interfaz visual.
+
